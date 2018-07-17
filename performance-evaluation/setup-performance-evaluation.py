@@ -219,31 +219,19 @@ def copy_talents_for_development(current_worksheet, previous_worksheet):
 				cell_to_read = previous_worksheet.cell(column + str(row))
 				current_worksheet.update_value(column + str(row), cell_to_read.value)
 	else:
-		rows_to_consider = [6, 7, 8, 9]
-		# Array of cells in column degree
-		degree_cells = list(map(lambda each: previous_worksheet.cell('G' + str(each)), rows_to_consider))
-		# Empty cells are not taken into account
-		degree_cells = list(filter(lambda each: len(each.value) > 0, degree_cells))
-		# Min value number for degree
-		min_degree = min(list(map(lambda each: each.value, degree_cells)))
-		# Cell with degree equal to min value
-		cells_with_min_degree = list(filter(lambda each: each.value == min_degree, degree_cells))
-		rows_with_min_degree = list(map(lambda each: each.row, cells_with_min_degree))
+		# Cells for 'Aprendizaje' -> 'Aprendizaje'
+		matching_dictionary = {'G6': 'G6', 'H6': 'H6', 'I6': 'I6'}
+		for key, value in matching_dictionary.items():
+			cell_from = previous_worksheet.cell(key)
+			current_worksheet.update_value(value, cell_from.value)
 
-		# Find row with the min degree and frequency to paste in current_worksheet
-		min_row = None
-		possible_frequencies = ['Algunas veces', 'Habitualmente', 'En la mayoría de los casos', 'Casi siempre']
-		for frequency in possible_frequencies:
-			for row in rows_with_min_degree:
-				if not min_row and previous_worksheet.cell('H' + str(row)).value == frequency:
-					min_row = row
-
-		cell_to_read_degree = previous_worksheet.cell('G' + str(min_row))
-		current_worksheet.update_value('G6', cell_to_read_degree.value)
-		
-		cell_to_read_frequency = previous_worksheet.cell('H' + str(min_row))
-		current_worksheet.update_value('H6', cell_to_read_frequency.value)
-
+		# Cells for 'Calidad de código' -> 'Calidad y transmisión'
+		matching_dictionary = {'G9': 'G8', 'H9': 'H8', 'I9': 'I8'}
+		for key, value in matching_dictionary.items():
+			cell_from = previous_worksheet.cell(key)
+			cell_to = current_worksheet.cell(value)
+			if len(cell_to.value) == 0:
+				current_worksheet.update_value(value, cell_from.value)
 
 # Hide talents in destiny_sheet by reading the chosen ones from answers_role_sheet in answers_role_row
 def hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row):
