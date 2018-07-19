@@ -110,7 +110,7 @@ def on_finish():
 	print('Ejecución finalizada con éxito! No olvidar verificar el estado del documento de forma manual.')
 
 # Copy tabs from template_sheet to destiny_sheet, letting the user select whether or not they are needed
-def copy_tabs(destiny_sheet, template_sheet):
+def copy_tabs(destiny_sheet, template_sheet, date_to_append):
 	destiny_worksheets = destiny_sheet.worksheets()
 	template_worksheets = template_sheet.worksheets()
 
@@ -148,55 +148,59 @@ def copy_tabs(destiny_sheet, template_sheet):
 	# Worksheets in last index 'Referencias' or 'Referencias N/YY' is read from template
 	worksheets_to_copy.append(template_worksheets[-1])
 
-	# Asking for date to append replacing the date in template
-	date_to_append = get_date_to_append()
 	print('')
-
 	print('Comenzando copia de tabs al documento de evaluación...')
 	print('')
 
 	for i, worksheet in enumerate(worksheets_to_copy):
 		# If title finishes in number it assumes the date needs to be removed and replaced by date_to_append
 		title = (worksheet.title if not worksheet.title[-1].isdigit() else worksheet.title[:-5]) + ' ' + date_to_append
-		print('Copiando tab (' + str(i) + '): ' + title)
+		print('Copiando tab (' + str(i) + '): ' + title + ' -- desde: ' + worksheet.title)
 		new_worksheet = destiny_sheet.add_worksheet(title, src_worksheet=worksheet)
 		new_worksheet.index = i
 
 	print('')
 	print('Copia de tabs finalizada!')
-	
-	print('')
-	print('Actualizando estado del documento...')
+	print('')	
+
+	print('Actualizando estado del documento.')
 
 	# Updating index for every previously existing worksheet in destiny_sheet to avoid duplicated indexes after copying
 	for i, worksheet in enumerate(destiny_sheet.worksheets()):
 		if not worksheet.title.endswith(date_to_append):
 			worksheet.index = worksheet.index + len(worksheets_to_copy)
 
+	print('Estado del documento actualizado!')
+	print('')
+
 	# For first time remove default worksheet, which after copying at the beggining, should be at the last index
 	default_worksheet = list(filter(lambda each: each.title.startswith('Sheet'), destiny_sheet.worksheets()))
 	if default_worksheet:
 		print('Borrando tab default: ' + default_worksheet[0].title)
 		destiny_sheet.del_worksheet(default_worksheet[0])
+		print('Borrada tab default: ' + default_worksheet[0].title)
+		print('')
 
 	# Update cell with evaluation instance in 'Desempeño'
-	instance_worksheet = list(filter(lambda each: each.title == 'Desempeño ' + date_to_append, destiny_sheet.worksheets()))[0]
+	instance_worksheet = destiny_sheet.worksheet_by_title('Desempeño' + ' ' + date_to_append)
 	print('Actualizando instancia de evaluación en tab: ' + instance_worksheet.title)
 	instance_worksheet.update_value('F17', date_to_append)
+	print('Actualizada instancia de evaluación en tab: ' + instance_worksheet.title)
+	print('')
 
 	# Update talent cells 'Desarrollo' since it may have changes
-	updated_destiny_worksheets = destiny_sheet.worksheets()
-	current_development_worksheet = list(filter(lambda each: each.title == 'Desarrollo ' + date_to_append, updated_destiny_worksheets))[0]
-	print('Actualizando tab: ' + current_development_worksheet.title)
-	previous_development_worksheet = list(filter(lambda each: each.title.startswith('Desarrollo') and each.index > current_development_worksheet.index, updated_destiny_worksheets))
+	current_development_worksheet = destiny_sheet.worksheet_by_title('Desarrollo' + ' ' + date_to_append)
+	previous_development_worksheet = list(filter(lambda each: each.title.startswith('Desarrollo') and each.index > current_development_worksheet.index, destiny_sheet.worksheets()))
 	previous_development_worksheet = previous_development_worksheet[0] if previous_development_worksheet else None
 	copy_talents_for_development(current_development_worksheet, previous_development_worksheet)
 
-	print('')
-
 def copy_talents_for_development(current_worksheet, previous_worksheet):
+	print('Actualizando tab: ' + current_worksheet.title)
+
 	# If previous_worksheet is None, then this talent is evaluated by first time, so nowhere to copy from
 	if not previous_worksheet:
+		print('Nada para copiar...')
+		print('')
 		return
 
 	# If 'B12' contains 'Dev2', then previous_worksheet has the older format, otherwise the matching is direct
@@ -233,8 +237,12 @@ def copy_talents_for_development(current_worksheet, previous_worksheet):
 			if len(cell_to.value) == 0:
 				current_worksheet.update_value(value, cell_from.value)
 
+	print('Actualizada tab: ' + current_worksheet.title)
+	print('')
+
 # Hide talents in destiny_sheet by reading the chosen ones from answers_role_sheet in answers_role_row
-def hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row):
+def hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append):
+	print('')
 	print('Ocultando talentos no seleccionados...')
 	print('')
 
@@ -255,23 +263,21 @@ def hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row):
 	}
 
 	for key, value in matching_dictionary.items():
-		hide_unused_talents_in_single_worksheet(destiny_sheet, key, value[0], answers_role_sheet, answers_role_row, value[1])
+		hide_unused_talents_in_single_worksheet(destiny_sheet, key, value[0], answers_role_sheet, answers_role_row, value[1], date_to_append)
 
 	print('Ocultamiento de talentos finalizado!')
 	print('')
 
-def hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, worksheet_identifier, answers_role_sheet, answers_role_row, answers_role_column):
-	print('Comenzando a mostrar talentos para tab: ' + worksheet_name)
-
-	worksheet_destiny_array = destiny_sheet.worksheets()
-	worksheet_destiny_index = next(index for index, each in enumerate(worksheet_destiny_array) if each.title.startswith(worksheet_name))
-	worksheet_destiny = worksheet_destiny_array[worksheet_destiny_index]
+def hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, worksheet_identifier, answers_role_sheet, answers_role_row, answers_role_column, date_to_append):
+	# Get worksheet destiny based on worksheet_name and date_to_append
+	worksheet_destiny = destiny_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append)
 
 	# Cell from answers document with the selected talents. Info is separated by comma
 	answers_cell = answers_role_sheet.sheet1.cell(answers_role_column + answers_role_row).value.lower()
 
 	# Hide worksheet if there are no talents chosen from it
 	worksheet_destiny.hidden = not bool(answers_cell)
+	print('Comenzando a mostrar talentos para tab: ' + worksheet_destiny.title)
 	print('(visible)' if bool(answers_cell) else '(oculto)')
 
 	# In case there are no talents chosen from this worksheet, no hiding/showing of talents is necessary
@@ -333,14 +339,12 @@ def provisional_find_for_worksheet(worksheet, title):
 			return list(map(lambda each: worksheet.cell(each), value))
 
 # Copy answers to destiny_sheet by reading them from answers_role_sheet in answers_role_row
-def copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row):
-	# Worksheet in index 0 to copy the answers 'Respuestas de formulario 1'
-	answers_worksheet_array = answers_role_sheet.worksheets()
-	answers_worksheet_index = next(index for index, each in enumerate(answers_worksheet_array) if each.title.startswith('Respuestas de formulario 1'))
-	answers_worksheet = answers_role_sheet.worksheets()[answers_worksheet_index]
+def copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append):
+	# Get worksheet with name 'Respuestas de formulario 1' from answers_role_sheet
+	answers_worksheet = answers_role_sheet.worksheet_by_title('Respuestas de formulario 1')
 
-	# Worksheet in index 1 to paste the answers 'Satisfacción Laboral'
-	destiny_worksheet = list(filter(lambda each: each.index == 1, destiny_sheet.worksheets()))[0]
+	# Get worksheet destiny based on name 'Satisfacción Laboral' and date_to_append
+	destiny_worksheet = destiny_sheet.worksheet_by_title('Satisfacción Laboral' + ' ' + date_to_append)
 
 	print('Realizando copia de respuestas del formulario de rol laboral a tab: ' + destiny_worksheet.title)
 	print('')
@@ -375,10 +379,11 @@ google_credentials = get_google_credentials()
 destiny_sheet = get_destiny_sheet(google_credentials)
 template_sheet = get_template_sheet(google_credentials)
 validate_updated_timestamp(template_sheet, TEMPLATE_TIMESTAMP)
-copy_tabs(destiny_sheet, template_sheet)
+date_to_append = get_date_to_append()
+copy_tabs(destiny_sheet, template_sheet, date_to_append)
 wait_for_quota_renewal()
 answers_role_sheet = get_answers_role_sheet(google_credentials)
 answers_role_row = get_answers_role_row(answers_role_sheet)
-hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row)
-copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row)
+hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append)
+copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append)
 on_finish()
