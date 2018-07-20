@@ -36,6 +36,26 @@ TEMPLATE_TIMESTAMP = '2018-07-10T20:32:59.555Z'
 # Use as key just the code shown in URL after https://docs.google.com/spreadsheets/d/
 ANSWERS_ROLE_FILE_KEY = '1felT_0RAVlG4FWFTbCkx3XMJjVSTd5sXqOLVYMzcRSo'
 
+# Structs declarations
+
+# This is a matching between a talent and a 4-tuple with:
+# (talent_identifier, columnt for talent in answers_role_sheet, row for talent in 'Desempeño', row in tab for title talents):
+struct_dictionary = {
+	'Universales': 					('U',	'J',	24,		['B2', 'B12', 'B23', 'B35', 'B45', 'B56', 'B67', 'B78', 'B88', 'B99']),
+	'Administración y Finanzas': 	('AF',	'L',	48,		['B2', 'B12', 'B22']),
+	'Business Dev': 				('BD',	'M',	64,		['B2', 'B12', 'B22', 'B32', 'B42', 'B52']),
+	'Calidad': 						('C',	'P',	68,		['B2', 'B12', 'B22', 'B32', 'B42']),
+	'Desarrollo': 					('Dev',	'K',	28,		['B2', 'B11', 'B19', 'B27', 'B35']),
+	'Diseño': 						('Dis',	'N',	32,		['B2', 'B10', 'B19', 'B28', 'B38']),
+	'QA': 							('QA',	'O',	52,		['B2', 'B12', 'B23', 'B31', 'B41']),
+	'Referentes Técnicos': 			('RT',	'R',	72,		['B2', 'B9']),
+	'Líderes':						('Lid',	'U',	36,		['B2', 'B11', 'B21', 'B31', 'B41', 'B51', 'B61']),
+	'Marketing':					('M',	'V',	40,		['B2', 'B11', 'B21', 'B31', 'B41']),
+	'Scrum Masters':				('SM',	'S',	60,		['B2', 'B12', 'B23', 'B33', 'B43']),
+	'People Care':					('PC',	'Q',	44,		['B2', 'B13', 'B24', 'B35', 'B44']),
+	'Team Managers':				('TM',	'T',	56,		['B2', 'B12'])
+}
+
 # Function declarations
 
 # Authenticate using OAuth from a given credentials file path and return credentials
@@ -246,29 +266,13 @@ def hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, dat
 	print('Ocultando talentos no seleccionados...')
 	print('')
 
-	matching_dictionary = {
-		'Universales': ('U', 'J'),
-		'Administración y Finanzas': ('AF', 'L'),
-		'Business Dev': ('BD', 'M'),
-		'Calidad': ('C', 'P'),
-		'Desarrollo': ('Dev', 'K'),
-		'Diseño': ('Dis', 'N'),
-		'QA': ('QA', 'O'),
-		'Referentes Técnicos': ('RT', 'R'),
-		'Líderes': ('Lid', 'U'),
-		'Marketing': ('M', 'V'),
-		'Scrum Masters': ('SM', 'S'),
-		'People Care': ('PC', 'Q'),
-		'Team Managers': ('TM', 'T')
-	}
-
-	for key, value in matching_dictionary.items():
-		hide_unused_talents_in_single_worksheet(destiny_sheet, key, value[0], answers_role_sheet, answers_role_row, value[1], date_to_append)
+	for key, value in struct_dictionary.items():
+		hide_unused_talents_in_single_worksheet(destiny_sheet, key, value[0], answers_role_sheet, answers_role_row, value[1], date_to_append, value[2], len(value[3]))
 
 	print('Ocultamiento de talentos finalizado!')
 	print('')
 
-def hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, worksheet_identifier, answers_role_sheet, answers_role_row, answers_role_column, date_to_append):
+def hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, worksheet_identifier, answers_role_sheet, answers_role_row, answers_role_column, date_to_append, title_row_in_brief, talents_amount):
 	# Get worksheet destiny based on worksheet_name and date_to_append
 	worksheet_destiny = destiny_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append)
 
@@ -280,14 +284,25 @@ def hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, works
 	print('Comenzando a mostrar talentos para tab: ' + worksheet_destiny.title)
 	print('(visible)' if bool(answers_cell) else '(oculto)')
 
+	# If no talents were chosen, the row in brief may have to be hidden if no talent was ever evaluated
+	if not bool(answers_cell):
+		# Get worksheet destiny based on name 'Desempeño' and date_to_append
+		brief_worksheet = destiny_sheet.worksheet_by_title('Desempeño' + ' ' + date_to_append)
+		cells_with_values_from = (title_row_in_brief + 2, 2)
+		cells_with_values_to = (title_row_in_brief + 2, 1 + talents_amount)
+		cells_with_values = brief_worksheet.get_values(start=cells_with_values_from, end=cells_with_values_to, returnas='cell')[0]
+		# If there is no value different than '1' in the row, then the talent must be hidden
+		if not True in list(map(lambda each: not each.value == '1', cells_with_values)):
+			print('Ocultando fila en: ' + brief_worksheet.title)
+			brief_worksheet.hide_rows(title_row_in_brief - 2, title_row_in_brief + 2)
+
 	# In case there are no talents chosen from this worksheet, no hiding/showing of talents is necessary
 	if not answers_cell:
 		print('')
 		return
 
 	# Array with the positions of the cells from worksheet which contain the titles for the talents
-	# cells_with_titles = worksheet_destiny.find('u[0-9][0-9]?', searchByRegex=True)
-	cells_with_titles = provisional_find_for_worksheet(worksheet_destiny, worksheet_name)
+	cells_with_titles = list(map(lambda each: worksheet_destiny.cell(each), struct_dictionary[worksheet_name][3]))
 
 	# Array with the clean titles for the talents, after removing prefix
 	worksheet_talents = list(map(lambda each: each.value[(len(each.value.split()[0]) + 1):], cells_with_titles))
@@ -315,28 +330,6 @@ def hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, works
 			print('Mostrando talento: ' + title)
 
 	print('')
-
-# This function is provisional and will be removed once the 'Insufficient tokens for quota' error is fixed
-def provisional_find_for_worksheet(worksheet, title):
-	matching_dictionary = {
-		'Universales': ['B2', 'B12', 'B23', 'B35', 'B45', 'B56', 'B67', 'B78', 'B88', 'B99'],
-		'Administración y Finanzas': ['B2', 'B12', 'B22'],
-		'Business Dev': ['B2', 'B12', 'B22', 'B32', 'B42', 'B52'],
-		'Calidad': ['B2', 'B12', 'B22', 'B32', 'B42'],
-		'Desarrollo': ['B2', 'B11', 'B19', 'B27', 'B35'],
-		'Diseño': ['B2', 'B10', 'B19', 'B28', 'B38'],
-		'QA': ['B2', 'B12', 'B23', 'B31', 'B41'],
-		'Referentes Técnicos': ['B2', 'B9'],
-		'Líderes': ['B2', 'B11', 'B21', 'B31', 'B41', 'B51', 'B61'],
-		'Marketing': ['B2', 'B11', 'B21', 'B31', 'B41'],
-		'Scrum Masters': ['B2', 'B12', 'B23', 'B33', 'B43'],
-		'People Care': ['B2', 'B13', 'B24', 'B35', 'B44'],
-		'Team Managers': ['B2', 'B12']
-	}
-
-	for key, value in matching_dictionary.items():
-		if title == key:
-			return list(map(lambda each: worksheet.cell(each), value))
 
 # Copy answers to destiny_sheet by reading them from answers_role_sheet in answers_role_row
 def copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append):
