@@ -41,19 +41,19 @@ ANSWERS_ROLE_FILE_KEY = '1felT_0RAVlG4FWFTbCkx3XMJjVSTd5sXqOLVYMzcRSo'
 # This is a matching between a talent and a 4-tuple with:
 # (talent_identifier, columnt for talent in answers_role_sheet, row for talent in 'Desempeño', row in tab for title talents):
 struct_dictionary = {
-	'Universales': 					('U',	'J',	24,		['B2', 'B12', 'B23', 'B35', 'B45', 'B56', 'B67', 'B78', 'B88', 'B99']),
-	'Administración y Finanzas': 	('AF',	'L',	48,		['B2', 'B12', 'B22']),
-	'Business Dev': 				('BD',	'M',	64,		['B2', 'B12', 'B22', 'B32', 'B42', 'B52']),
-	'Calidad': 						('C',	'P',	68,		['B2', 'B12', 'B22', 'B32', 'B42']),
-	'Desarrollo': 					('Dev',	'K',	28,		['B2', 'B11', 'B19', 'B27', 'B35']),
-	'Diseño': 						('Dis',	'N',	32,		['B2', 'B10', 'B19', 'B28', 'B38']),
-	'QA': 							('QA',	'O',	52,		['B2', 'B12', 'B23', 'B31', 'B41']),
-	'Referentes Técnicos': 			('RT',	'R',	72,		['B2', 'B9']),
-	'Líderes':						('Lid',	'U',	36,		['B2', 'B11', 'B21', 'B31', 'B41', 'B51', 'B61']),
-	'Marketing':					('M',	'V',	40,		['B2', 'B11', 'B21', 'B31', 'B41']),
-	'Scrum Masters':				('SM',	'S',	60,		['B2', 'B12', 'B23', 'B33', 'B43']),
-	'People Care':					('PC',	'Q',	44,		['B2', 'B13', 'B24', 'B35', 'B44']),
-	'Team Managers':				('TM',	'T',	56,		['B2', 'B12'])
+	'Universales': 					('U',	'J',	24,		[2, 12, 23, 35, 45, 56, 67, 78, 88, 99]),
+	'Administración y Finanzas': 	('AF',	'L',	48,		[2, 12, 22]),
+	'Business Dev': 				('BD',	'M',	64,		[2, 12, 22, 32, 42, 52]),
+	'Calidad': 						('C',	'P',	68,		[2, 12, 22, 32, 42]),
+	'Desarrollo': 					('Dev',	'K',	28,		[2, 11, 19, 27, 35]),
+	'Diseño': 						('Dis',	'N',	32,		[2, 10, 19, 28, 38]),
+	'QA': 							('QA',	'O',	52,		[2, 12, 23, 31, 41]),
+	'Referentes Técnicos': 			('RT',	'R',	72,		[2, 9]),
+	'Líderes':						('Lid',	'U',	36,		[2, 11, 21, 31, 41, 51, 61]),
+	'Marketing':					('M',	'V',	40,		[2, 11, 21, 31, 41]),
+	'Scrum Masters':				('SM',	'S',	60,		[2, 12, 23, 33, 43]),
+	'People Care':					('PC',	'Q',	44,		[2, 13, 24, 35, 44]),
+	'Team Managers':				('TM',	'T',	56,		[2, 12])
 }
 
 # Function declarations
@@ -302,7 +302,8 @@ def hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, works
 		return
 
 	# Array with the positions of the cells from worksheet which contain the titles for the talents
-	cells_with_titles = list(map(lambda each: worksheet_destiny.cell(each), struct_dictionary[worksheet_name][3]))
+	cells_with_titles_addresses = list(map(lambda each: 'B' + str(each), struct_dictionary[worksheet_name][3]))
+	cells_with_titles = list(map(lambda each: worksheet_destiny.cell(each), cells_with_titles_addresses))
 
 	# Array with the clean titles for the talents, after removing prefix
 	worksheet_talents = list(map(lambda each: each.value[(len(each.value.split()[0]) + 1):], cells_with_titles))
