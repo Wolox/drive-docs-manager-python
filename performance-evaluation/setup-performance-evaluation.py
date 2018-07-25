@@ -141,6 +141,20 @@ def is_valid_date_to_append(date_to_append):
 		return False
 	return True
 
+# If destiny sheet contains an evaluation for date to append, then the copy should not be re done
+def copy_should_be_omitted(destiny_sheet, date_to_append):
+	if destiny_sheet.sheet1.title.endswith(date_to_append):
+		print('')
+		print('Ya existe una evaluación para la instancia: \'' + date_to_append + '\'')
+		print('La copia de tabs no se va a realizar. Sólo se van a ocultar las tabs y talentos, y copiar las respuestas.')
+		print('Continuar? Presione \'s/n\'.')
+		if not readchar.readchar() == 's':
+			print('Abortando ejecución. No se realizaron cambios en el documento.')
+			exit()
+		print('')
+		return True
+	return False
+
 def wait_for_quota_renewal():
 	remaining_seconds = 120
 	waiting_seconds = 15
@@ -399,8 +413,9 @@ destiny_sheet = get_destiny_sheet(google_credentials)
 template_sheet = get_template_sheet(google_credentials)
 validate_updated_timestamp(template_sheet, TEMPLATE_TIMESTAMP)
 date_to_append = get_date_to_append()
-copy_tabs(destiny_sheet, template_sheet, date_to_append)
-wait_for_quota_renewal()
+if not copy_should_be_omitted(destiny_sheet, date_to_append):
+	copy_tabs(destiny_sheet, template_sheet, date_to_append)
+	wait_for_quota_renewal()
 answers_role_sheet = get_answers_role_sheet(google_credentials)
 answers_role_row = get_answers_role_row(answers_role_sheet)
 hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append)
