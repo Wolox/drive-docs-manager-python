@@ -84,12 +84,16 @@ def get_template_sheet(google_credentials):
 def get_destiny_sheet(google_credentials):
 	while True:
 		destiny_file_key = input('Ingresar la key del documento a actualizar: ')
-		destiny_sheet = google_credentials.open_by_key(destiny_file_key)
-		print('Se va a actualizar el documento con el nombre: \'' + destiny_sheet.title + '\'')
-		print('Es correcto? Presione \'s/n\'.')
-		if readchar.readchar() == 's':
-			print('Abriendo documento para comenzar a trabajar...')
-			return destiny_sheet
+		try:
+			destiny_sheet = google_credentials.open_by_key(destiny_file_key)
+			print('Se va a actualizar el documento con el nombre: \'' + destiny_sheet.title + '\'')
+			print('Es correcto? Presione \'s/n\'.')
+			if readchar.readchar() == 's':
+				print('Abriendo documento para comenzar a trabajar...')
+				return destiny_sheet
+		except:
+			print('El valor ingresado \'' + destiny_file_key + '\' no es válido. Revisar y volver a intentar.')
+			print('')
 
 # Open and return the answers role sheet
 def get_answers_role_sheet(google_credentials):
@@ -102,15 +106,24 @@ def get_answers_role_sheet(google_credentials):
 def get_answers_role_row(answers_role_sheet):
 	while True:
 		answers_row_index = input('Ingresar número de fila correspondiente a la evaluación: ')
-		print('Se van a copiar las respuestas para: \'' + answers_role_sheet.sheet1.cell('C' + answers_row_index).value + '\'')
-		print('Es correcto? Presione \'s/n\'.')
-		if readchar.readchar() == 's':
-			print('Leyendo respuestas...')
-			return answers_row_index
+		try:
+			print('Se van a copiar las respuestas para: \'' + answers_role_sheet.sheet1.cell('C' + answers_row_index).value + '\'')
+			print('Es correcto? Presione \'s/n\'.')
+			if readchar.readchar() == 's':
+				print('Leyendo respuestas...')
+				return answers_row_index
+		except:
+			print('El valor ingresado \'' + answers_row_index + '\' no es válido. Revisar y volver a intentar.')
+			print('')
 
+# Ask for date to append as evaluation instance
 def get_date_to_append():
 	while True:
 		date_to_append = input('Ingresar instancia de evaluación. Ejemplo: \'1/18\': ')
+		if len(date_to_append) == 0:
+			print('El valor ingresado \'' + date_to_append + '\' no es válido. Revisar y volver a intentar.')
+			continue
+
 		print('Instancia ingresada: \'' + date_to_append + '\'')
 		print('Es correcto? Presione \'s/n\'.')
 		if readchar.readchar() == 's':
