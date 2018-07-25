@@ -120,7 +120,7 @@ def get_answers_role_row(answers_role_sheet):
 def get_date_to_append():
 	while True:
 		date_to_append = input('Ingresar instancia de evaluación. Ejemplo: \'1/18\': ')
-		if len(date_to_append) == 0:
+		if not is_valid_date_to_append(date_to_append):
 			print('El valor ingresado \'' + date_to_append + '\' no es válido. Revisar y volver a intentar.')
 			continue
 
@@ -129,6 +129,17 @@ def get_date_to_append():
 		if readchar.readchar() == 's':
 			print('Instancia confirmada...')
 			return date_to_append
+
+def is_valid_date_to_append(date_to_append):
+	if not len(date_to_append) == 4:
+		return False
+	if not date_to_append[:1].isnumeric():
+		return False
+	if not date_to_append[1:2] == '/':
+		return False
+	if not date_to_append[3:].isnumeric():
+		return False
+	return True
 
 def wait_for_quota_renewal():
 	remaining_seconds = 120
