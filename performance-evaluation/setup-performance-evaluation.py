@@ -30,7 +30,7 @@ CREDENTIALS_FILE_PATH = 'client_secret.json'
 # Use as key just the code shown in URL after https://docs.google.com/spreadsheets/d/
 TEMPLATE_FILE_KEY = '10pGXiWVm6dzfwaSCXHWd0G4FetUgmIChCiq5Cm7dIKc'
 # Timestamp for file. In case the found timestamp is different than this, execution must be aborted
-TEMPLATE_TIMESTAMP = '2018-07-10T20:32:59.555Z'
+TEMPLATE_TIMESTAMP = '2018-07-23T11:48:10.465Z'
 
 # For file named: 'Rol Laboral - Evaluaciones de Desempeño (Respuestas)'
 # Use as key just the code shown in URL after https://docs.google.com/spreadsheets/d/
@@ -69,6 +69,7 @@ def get_google_credentials():
 # Checks the last updated timestamp por template. In case it was modified, script code may have to be adapted
 def validate_updated_timestamp(spreadsheet, timestamp):
 	if spreadsheet.updated != timestamp:
+		print('Fecha de última modificación: ' + spreadsheet.updated)
 		print('Cancelando script. Archivo \'' + spreadsheet.title + '\' modificado, revisar script.')
 		print('')
 		exit()
