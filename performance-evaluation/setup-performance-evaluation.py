@@ -265,36 +265,28 @@ def copy_talents_for_development(current_worksheet, previous_worksheet):
 	# If 'B12' contains 'Dev2', then previous_worksheet has the older format, otherwise the matching is direct
 	need_to_adapt = previous_worksheet.cell('B12').value.startswith('Dev2')
 
-	columns_to_update = ['G', 'H', 'I']
-	rows_to_update = [15, 16, 23, 24, 31, 32, 39, 40]
+	cells_if_not_need_to_adapt = {
+		('G6', 'I8'): ('G6', 'I8'),		# Dev1
+		('G15', 'I16'): ('G15', 'I16'), # Dev2
+		('G23', 'I24'): ('G23', 'I24'), # Dev3
+		('G31', 'I32'): ('G31', 'I32'), # Dev4
+		('G39', 'I40'): ('G39', 'I40'), # Dev5
+	}
+	cells_if_need_to_adapt = {
+		('G6', 'I6'): ('G6', 'I6'), 	# Dev1: 'Aprendizaje'
+		('G9', 'I9'): ('G8', 'I8'),		# Dev1: 'Calidad de código'
+		('G16', 'I17'): ('G15', 'I16'), # Dev2
+		('G24', 'I25'): ('G23', 'I24'), # Dev3
+		('G32', 'I33'): ('G31', 'I32'), # Dev4
+		('G40', 'I41'): ('G39', 'I40'), # Dev5
+	}
+	ranges_to_update = cells_if_not_need_to_adapt if not need_to_adapt else cells_if_need_to_adapt
+	for key, value in ranges_to_update.items():
+		talents = previous_worksheet.get_values(start=key[0], end=key[1], returnas='matrix')
+		current_worksheet.update_values(crange=value[0] + ':' + value[1], values=talents)
 
-	# For talents which did not change, just copy directly
-	for column in columns_to_update:
-		for row in rows_to_update:
-			cell_to_read = previous_worksheet.cell(column + str(row if not need_to_adapt else row + 1))
-			current_worksheet.update_value(column + str(row), cell_to_read.value)
-
-	# For 'Dev1', give special treatment
-	if not need_to_adapt:
-		rows_to_update = [6, 7, 8]
-		for column in columns_to_update:
-			for row in rows_to_update:
-				cell_to_read = previous_worksheet.cell(column + str(row))
-				current_worksheet.update_value(column + str(row), cell_to_read.value)
-	else:
-		# Cells for 'Aprendizaje' -> 'Aprendizaje'
-		matching_dictionary = {'G6': 'G6', 'H6': 'H6', 'I6': 'I6'}
-		for key, value in matching_dictionary.items():
-			cell_from = previous_worksheet.cell(key)
-			current_worksheet.update_value(value, cell_from.value)
-
-		# Cells for 'Calidad de código' -> 'Calidad y transmisión'
-		matching_dictionary = {'G9': 'G8', 'H9': 'H8', 'I9': 'I8'}
-		for key, value in matching_dictionary.items():
-			cell_from = previous_worksheet.cell(key)
-			cell_to = current_worksheet.cell(value)
-			if len(cell_to.value) == 0:
-				current_worksheet.update_value(value, cell_from.value)
+	print('Actualizada tab: ' + current_worksheet.title)
+	print('')
 
 	print('Actualizada tab: ' + current_worksheet.title)
 	print('')
