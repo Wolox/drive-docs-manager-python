@@ -30,7 +30,7 @@ CREDENTIALS_FILE_PATH = 'client_secret.json'
 # Use as key just the code shown in URL after https://docs.google.com/spreadsheets/d/
 TEMPLATE_FILE_KEY = '10pGXiWVm6dzfwaSCXHWd0G4FetUgmIChCiq5Cm7dIKc'
 # Timestamp for file. In case the found timestamp is different than this, execution must be aborted
-TEMPLATE_TIMESTAMP = '2018-07-23T11:48:10.465Z'
+TEMPLATE_TIMESTAMP = '2018-08-02T17:35:45.332Z'
 
 # For file named: 'Rol Laboral - Evaluaciones de Desempeño (Respuestas)'
 # Use as key just the code shown in URL after https://docs.google.com/spreadsheets/d/
@@ -51,7 +51,7 @@ struct_dictionary = {
 	'Referentes Técnicos': 			('RT',	'R',	72,		[2, 9]),
 	'Líderes':						('Lid',	'U',	36,		[2, 11, 21, 31, 41, 51, 61]),
 	'Marketing':					('M',	'V',	40,		[2, 11, 21, 31, 41]),
-	'Scrum Masters':				('SM',	'S',	60,		[2, 12, 23, 33, 43]),
+	'Scrum Masters':				('SM',	'S',	60,		[2, 11, 21]),
 	'People Care':					('PC',	'Q',	44,		[2, 13, 24, 35, 44]),
 	'Team Managers':				('TM',	'T',	56,		[2, 12])
 }
@@ -198,8 +198,8 @@ def copy_tabs(destiny_sheet, template_sheet, date_to_append):
 		found_destiny_worksheet = list(filter(lambda each: each.title.startswith(clean_title_to_search), destiny_last_evaluation_worksheets))
 		worksheet_to_copy = worksheet if not found_destiny_worksheet else found_destiny_worksheet[0]
 		
-		# In case 'Desarrollo' is found in destiny_worksheet, it must be copied from template_worksheet anyway since it may have updates
-		if worksheet.title.startswith('Desarrollo'):
+		# In case 'Desarrollo' or 'Scrum Masters' is found in destiny_worksheet, it must be copied from template_worksheet since it may have updates
+		if worksheet.title.startswith('Desarrollo') or worksheet.title.startswith('Scrum Masters'):
 			worksheet_to_copy = worksheet
 
 		worksheets_to_copy.append(worksheet_to_copy)
@@ -253,6 +253,12 @@ def copy_tabs(destiny_sheet, template_sheet, date_to_append):
 	previous_development_worksheet = previous_development_worksheet[0] if previous_development_worksheet else None
 	copy_talents_for_development(current_development_worksheet, previous_development_worksheet)
 
+	# Update talent cells 'Scrum Masters' since it may have changes
+	current_scrum_masters_worksheet = destiny_sheet.worksheet_by_title('Scrum Masters' + ' ' + date_to_append)
+	previous_scrum_masters_worksheet = list(filter(lambda each: each.title.startswith('Scrum Masters') and each.index > current_scrum_masters_worksheet.index, destiny_sheet.worksheets()))
+	previous_scrum_masters_worksheet = previous_scrum_masters_worksheet[0] if previous_scrum_masters_worksheet else None
+	copy_talents_for_scrum_masters(current_scrum_masters_worksheet, previous_scrum_masters_worksheet)
+
 def copy_talents_for_development(current_worksheet, previous_worksheet):
 	print('Actualizando tab: ' + current_worksheet.title)
 
@@ -287,6 +293,36 @@ def copy_talents_for_development(current_worksheet, previous_worksheet):
 
 	print('Actualizada tab: ' + current_worksheet.title)
 	print('')
+
+def copy_talents_for_scrum_masters(current_worksheet, previous_worksheet):
+	print('Actualizando tab: ' + current_worksheet.title)
+
+	# If previous_worksheet is None, then this talent is evaluated by first time, so nowhere to copy from
+	if not previous_worksheet:
+		print('Nada para copiar...')
+		print('')
+		return
+
+	# If 'B12' contains 'SM2', then previous_worksheet has the older format, otherwise the matching is direct
+	need_to_adapt = previous_worksheet.cell('B12').value.startswith('SM2')
+
+	cells_if_not_need_to_adapt = {
+		('G6', 'I8'): ('G6', 'I8'),		# SM1
+		('G15', 'I18'): ('G15', 'I18'), # SM2
+		('G25', 'I28'): ('G25', 'I28'), # SM3
+	}
+	cells_if_need_to_adapt = {
+		('G6', 'I6'): ('G6', 'I6'), 	# SM1: 'Metodología y agilidad del proceso de desarrollo'
+		('G8', 'I8'): ('G7', 'I7'),		# SM1: 'Mejora Continua'
+		('G49', 'I49'): ('G8', 'I8'), 	# SM1: 'Mecanismos de seguimiento y control'
+		('G16', 'I19'): ('G15', 'I18'), # SM2
+		('G28', 'I30'): ('G25', 'I27'), # SM3
+		('G39', 'I39'): ('G28', 'I28'), # SM3: 'Acciones en relación a generación de comportamientos de participación y generación de ideas.'
+	}
+	ranges_to_update = cells_if_not_need_to_adapt if not need_to_adapt else cells_if_need_to_adapt
+	for key, value in ranges_to_update.items():
+		talents = previous_worksheet.get_values(start=key[0], end=key[1], returnas='matrix')
+		current_worksheet.update_values(crange=value[0] + ':' + value[1], values=talents)
 
 	print('Actualizada tab: ' + current_worksheet.title)
 	print('')
