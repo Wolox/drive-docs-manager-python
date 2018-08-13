@@ -26,21 +26,33 @@ import time
 # Path to credentials file. Read documentation https://pygsheets.readthedocs.io/en/latest/authorizing.html to create new credentials
 CREDENTIALS_FILE_PATH = 'client_secret.json'
 
-# For file named: 'Template - Categorías 2.1'
-# Use as key just the code shown in URL after https://docs.google.com/spreadsheets/d/
-TEMPLATE_FILE_KEY = '10pGXiWVm6dzfwaSCXHWd0G4FetUgmIChCiq5Cm7dIKc'
-# Timestamp for file. In case the found timestamp is different than this, execution must be aborted
-TEMPLATE_TIMESTAMP = '2018-08-02T17:35:45.332Z'
+# For file named: 'Template - Evaluación Auxiliares'
+TEMPLATE_AUXILIAR_FILE_KEY = '1eB-6j0xc9qeFVtuF3xXfajiWD9e_TcFdxxTHHdlAjyU'
+TEMPLATE_AUXILIAR_FILE_TIMESTAMP = '2018-08-13T23:31:39.475Z'
+
+# For file named: 'Template - Evaluación Talentos'
+TEMPLATE_TALENT_FILE_KEY = '1D04Q-IQ67F1wTAgk3oEr1Q902DJd4ulv666mBlcar6c'
+TEMPLATE_TALENT_FILE_TIMESTAMP = '2018-08-13T21:54:27.293Z'
 
 # For file named: 'Rol Laboral - Evaluaciones de Desempeño (Respuestas)'
-# Use as key just the code shown in URL after https://docs.google.com/spreadsheets/d/
 ANSWERS_ROLE_FILE_KEY = '1felT_0RAVlG4FWFTbCkx3XMJjVSTd5sXqOLVYMzcRSo'
+
+# Mode for running script for ever evaluation after the first one.
+NEXT_EVALUATION = "NEXT_EVALUATION"
+# Mode for creating the auto evaluation form.
+AUTO_EVALUATION = "AUTO_EVALUATION"
+# Mode for creating the manager evaluation form.
+MANAGER_EVALUATION = "MANAGER_EVALUATION"
+# Mode for creating the exchage evaluation form.
+EXCHANGE_EVALUATION = "EXCHANGE_EVALUATION"
+# Mode for creating the first evaluation form after filling the agreement form.
+FIRST_EVALUATION = "FIRST_EVALUATION"
 
 # Structs declarations
 
 # This is a matching between a talent and a 4-tuple with:
-# (talent_identifier, columnt for talent in answers_role_sheet, row for talent in 'Desempeño', row in tab for title talents):
-struct_dictionary = {
+# (talent_identifier, columnt for talent in answers_role_sheet, row for talent in 'Desempeño', row in tab for title talents)
+template_talents_dictionary = {
 	'Universales': 					('U',	'J',	24,		[2, 12, 23, 35, 45, 56, 67, 78, 88, 99]),
 	'Administración y Finanzas': 	('AF',	'L',	48,		[2, 12, 22]),
 	'Business Dev': 				('BD',	'M',	64,		[2, 12, 22, 32, 42, 52]),
@@ -54,6 +66,16 @@ struct_dictionary = {
 	'Scrum Masters':				('SM',	'S',	60,		[2, 11, 21]),
 	'People Care':					('PC',	'Q',	44,		[2, 13, 24, 35, 44]),
 	'Team Managers':				('TM',	'T',	56,		[2, 12])
+}
+
+# This is a matching between the auxiliar tabs and an array including the modes in which each tab is included
+template_auxiliar_dictionary = {
+	'Referencias matriz': 			[NEXT_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
+	'Satisfacción Laboral': 		[NEXT_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
+	'Desempeño Evaluadores': 		[MANAGER_EVALUATION],
+	'Desempeño': 					[NEXT_EVALUATION, FIRST_EVALUATION],
+	'Objetivos y Capacitaciones': 	[NEXT_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
+	'Referencias': 					[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
 }
 
 # Function declarations
@@ -74,11 +96,13 @@ def validate_updated_timestamp(spreadsheet, timestamp):
 		print('')
 		exit()
 
-# Open and return the template sheet
-def get_template_sheet(google_credentials):
-	template_sheet = google_credentials.open_by_key(TEMPLATE_FILE_KEY)
-	print('')
-	return template_sheet
+# Open and return the template sheets
+def get_template_sheets(google_credentials):
+	template_auxiliar_sheet = google_credentials.open_by_key(TEMPLATE_AUXILIAR_FILE_KEY)
+	validate_updated_timestamp(template_auxiliar_sheet, TEMPLATE_AUXILIAR_FILE_TIMESTAMP)
+	template_talent_sheet = google_credentials.open_by_key(TEMPLATE_TALENT_FILE_KEY)
+	validate_updated_timestamp(template_talent_sheet, TEMPLATE_TALENT_FILE_TIMESTAMP)
+	return (template_auxiliar_sheet, template_talent_sheet)
 
 # Ask for the document to update and return the destiny sheet
 def get_destiny_sheet(google_credentials):
@@ -90,6 +114,7 @@ def get_destiny_sheet(google_credentials):
 			print('Es correcto? Presione \'s/n\'.')
 			if readchar.readchar() == 's':
 				print('Abriendo documento para comenzar a trabajar...')
+				print('')
 				return destiny_sheet
 		except:
 			print('El valor ingresado \'' + destiny_file_key + '\' no es válido. Revisar y volver a intentar.')
@@ -128,6 +153,7 @@ def get_date_to_append():
 		print('Es correcto? Presione \'s/n\'.')
 		if readchar.readchar() == 's':
 			print('Instancia confirmada...')
+			print('')
 			return date_to_append
 
 def is_valid_date_to_append(date_to_append):
@@ -140,6 +166,33 @@ def is_valid_date_to_append(date_to_append):
 	if not date_to_append[3:].isnumeric():
 		return False
 	return True
+
+# Ask for mode to run the script
+def get_mode():
+	while True:
+		print('Ingresar modalidad de ejecución:')
+		print('1- Preparar formulario de evaluación para instancias posteriores')
+		print('2- Preparar formulario de autoevaluación')
+		print('3- Preparar formulario de evaluación para evaluador')
+		print('4- Preparar formulario de evaluación para intercambio')
+		print('5- Completar formulario de primera evaluación después de intercambio')
+		input_mode = input('Ingresar opción \'1-5\': ')
+		mode = None
+		mode = NEXT_EVALUATION if input_mode == '1' else mode
+		mode = AUTO_EVALUATION if input_mode == '2' else mode
+		mode = MANAGER_EVALUATION if input_mode == '3' else mode
+		mode = EXCHANGE_EVALUATION if input_mode == '4' else mode
+		mode = FIRST_EVALUATION if input_mode == '5' else mode
+		if mode is None:
+			print('El valor ingresado \'' + input_mode + '\' no es válido. Revisar y volver a intentar.')
+			continue
+
+		print('Modalidad ingresada: \'' + input_mode + '\'')
+		print('Es correcto? Presione \'s/n\'.')
+		if readchar.readchar() == 's':
+			print('Modalidad confirmada...')
+			print('')
+			return mode
 
 # If destiny sheet contains an evaluation for date to append, then the copy should not be re done
 def copy_should_be_omitted(destiny_sheet, date_to_append):
@@ -168,22 +221,22 @@ def wait_for_quota_renewal():
 def on_finish():
 	print('Ejecución finalizada con éxito! No olvidar verificar el estado del documento de forma manual.')
 
-# Copy tabs from template_sheet to destiny_sheet, letting the user select whether or not they are needed
-def copy_tabs(destiny_sheet, template_sheet, date_to_append):
+# Copy tabs from templates to destiny_sheet
+def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, date_to_append, mode):
 	destiny_worksheets = destiny_sheet.worksheets()
-	template_worksheets = template_sheet.worksheets()
+	template_auxiliar_worksheets = template_auxiliar_sheet.worksheets()
+	template_talent_worksheets = template_talent_sheet.worksheets()
 
-	# Worksheets in indexes 1 to 4 are read from template
-	# Ignoring worksheet in tab 0, which is hidden: 'Referencias matriz (old)'
-	worksheets_to_copy = [template_worksheets[1], template_worksheets[2], template_worksheets[3], template_worksheets[4]]
-
-	# This is to discard non talent worksheets from template
-	template_talent_worksheets = template_worksheets[5:len(template_worksheets)-1]
+	# Auxiliar worksheets to be copied at the beginning, excluding 'Referencias' in last index, to be copied at the ending
+	worksheets_to_copy = []
+	for each in template_auxiliar_worksheets[:-1]:
+		if mode in template_auxiliar_dictionary[each.title]:
+			worksheets_to_copy.append(each)
 
 	# In case destiny contains multiple evaluations, only the last one must be duplicated, so a limit must be found
 	# This limit is when the worksheet named 'Referencias' or 'Referencias N/YY' is found
 	destiny_last_evaluation_worksheets = []
-	if len(destiny_worksheets) > 1:
+	if mode == NEXT_EVALUATION:
 		limit_index = next(index for index, each in enumerate(destiny_worksheets) if each.index > 0 and each.title.startswith('Referencias')) + 1
 		destiny_last_evaluation_worksheets = destiny_worksheets[0:limit_index]
 
@@ -204,10 +257,9 @@ def copy_tabs(destiny_sheet, template_sheet, date_to_append):
 
 		worksheets_to_copy.append(worksheet_to_copy)
 
-	# Worksheets in last index 'Referencias' or 'Referencias N/YY' is read from template
-	worksheets_to_copy.append(template_worksheets[-1])
+	# Worksheet in last index 'Referencias'
+	worksheets_to_copy.append(template_auxiliar_worksheets[-1])
 
-	print('')
 	print('Comenzando copia de tabs al documento de evaluación...')
 	print('')
 
@@ -229,6 +281,14 @@ def copy_tabs(destiny_sheet, template_sheet, date_to_append):
 		if not worksheet.title.endswith(date_to_append):
 			worksheet.index = worksheet.index + len(worksheets_to_copy)
 
+	# Removing unused cols for every talent worksheet in case the worksheet was copied from template
+	for key, value in template_talents_dictionary.items():
+		worksheet = destiny_sheet.worksheet_by_title(key + ' ' + date_to_append)
+		if worksheet.cols == 19:
+			column_to_remove_start_index = 16 if mode == EXCHANGE_EVALUATION else 7
+			column_to_remove_amount = 3 if mode == EXCHANGE_EVALUATION else 9
+			worksheet.delete_cols(column_to_remove_start_index, number=column_to_remove_amount)
+
 	print('Estado del documento actualizado!')
 	print('')
 
@@ -241,11 +301,20 @@ def copy_tabs(destiny_sheet, template_sheet, date_to_append):
 		print('')
 
 	# Update cell with evaluation instance in 'Desempeño'
-	instance_worksheet = destiny_sheet.worksheet_by_title('Desempeño' + ' ' + date_to_append)
-	print('Actualizando instancia de evaluación en tab: ' + instance_worksheet.title)
-	instance_worksheet.update_value('F17', date_to_append)
-	print('Actualizada instancia de evaluación en tab: ' + instance_worksheet.title)
-	print('')
+	if mode in template_auxiliar_dictionary['Desempeño']:
+		instance_worksheet = destiny_sheet.worksheet_by_title('Desempeño' + ' ' + date_to_append)
+		print('Actualizando instancia de evaluación en tab: ' + instance_worksheet.title)
+		instance_worksheet.update_value('F17', date_to_append)
+		print('Actualizada instancia de evaluación en tab: ' + instance_worksheet.title)
+		print('')
+
+	# Update cell with evaluation instance in 'Desempeño Evaluadores'
+	if mode in template_auxiliar_dictionary['Desempeño Evaluadores']:
+		instance_worksheet = destiny_sheet.worksheet_by_title('Desempeño Evaluadores' + ' ' + date_to_append)
+		print('Actualizando instancia de evaluación en tab: ' + instance_worksheet.title)
+		instance_worksheet.update_value('A22', date_to_append)
+		print('Actualizada instancia de evaluación en tab: ' + instance_worksheet.title)
+		print('')
 
 	# Update talent cells 'Desarrollo' since it may have changes
 	current_development_worksheet = destiny_sheet.worksheet_by_title('Desarrollo' + ' ' + date_to_append)
@@ -333,7 +402,7 @@ def hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, dat
 	print('Ocultando talentos no seleccionados...')
 	print('')
 
-	for key, value in struct_dictionary.items():
+	for key, value in template_talents_dictionary.items():
 		hide_unused_talents_in_single_worksheet(destiny_sheet, key, value[0], answers_role_sheet, answers_role_row, value[1], date_to_append, value[2], len(value[3]))
 
 	print('Ocultamiento de talentos finalizado!')
@@ -352,7 +421,7 @@ def hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, works
 	print('(visible)' if bool(answers_cell) else '(oculto)')
 
 	# If no talents were chosen, the row in brief may have to be hidden if no talent was ever evaluated
-	if not bool(answers_cell):
+	if mode in template_auxiliar_dictionary['Desempeño'] and not bool(answers_cell):
 		# Get worksheet destiny based on name 'Desempeño' and date_to_append
 		brief_worksheet = destiny_sheet.worksheet_by_title('Desempeño' + ' ' + date_to_append)
 		cells_with_values_from = (title_row_in_brief + 2, 2)
@@ -369,7 +438,7 @@ def hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, works
 		return
 
 	# Array with the positions of the cells from worksheet which contain the titles for the talents
-	cells_with_titles_addresses = list(map(lambda each: 'B' + str(each), struct_dictionary[worksheet_name][3]))
+	cells_with_titles_addresses = list(map(lambda each: 'B' + str(each), template_talents_dictionary[worksheet_name][3]))
 	cells_with_titles = list(map(lambda each: worksheet_destiny.cell(each), cells_with_titles_addresses))
 
 	# Array with the clean titles for the talents, after removing prefix
@@ -400,7 +469,13 @@ def hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, works
 	print('')
 
 # Copy answers to destiny_sheet by reading them from answers_role_sheet in answers_role_row
-def copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append):
+def copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode):
+	# If this tab is not used for this mode, then answers must not be copied
+	if mode not in template_auxiliar_dictionary['Satisfacción Laboral']:
+		print('Omitiendo copia de respuestas del formulario de rol laboral')
+		print('')
+		return
+
 	# Get worksheet with name 'Respuestas de formulario 1' from answers_role_sheet
 	answers_worksheet = answers_role_sheet.worksheet_by_title('Respuestas de formulario 1')
 
@@ -437,15 +512,15 @@ def copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_
 # Script
 
 google_credentials = get_google_credentials()
+(template_auxiliar_sheet, template_talent_sheet) = get_template_sheets(google_credentials)
+mode = get_mode()
 destiny_sheet = get_destiny_sheet(google_credentials)
-template_sheet = get_template_sheet(google_credentials)
-validate_updated_timestamp(template_sheet, TEMPLATE_TIMESTAMP)
 date_to_append = get_date_to_append()
 if not copy_should_be_omitted(destiny_sheet, date_to_append):
-	copy_tabs(destiny_sheet, template_sheet, date_to_append)
+	copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, date_to_append, mode)
 	wait_for_quota_renewal()
 answers_role_sheet = get_answers_role_sheet(google_credentials)
 answers_role_row = get_answers_role_row(answers_role_sheet)
 hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append)
-copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append)
+copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
 on_finish()
