@@ -32,7 +32,7 @@ TEMPLATE_AUXILIAR_FILE_TIMESTAMP = '2018-08-13T23:31:39.475Z'
 
 # For file named: 'Template - Evaluación Talentos'
 TEMPLATE_TALENT_FILE_KEY = '1D04Q-IQ67F1wTAgk3oEr1Q902DJd4ulv666mBlcar6c'
-TEMPLATE_TALENT_FILE_TIMESTAMP = '2018-08-13T21:54:27.293Z'
+TEMPLATE_TALENT_FILE_TIMESTAMP = '2018-08-14T00:41:27.002Z'
 
 # For file named: 'Rol Laboral - Evaluaciones de Desempeño (Respuestas)'
 ANSWERS_ROLE_FILE_KEY = '1felT_0RAVlG4FWFTbCkx3XMJjVSTd5sXqOLVYMzcRSo'
@@ -120,6 +120,38 @@ def get_destiny_sheet(google_credentials):
 			print('El valor ingresado \'' + destiny_file_key + '\' no es válido. Revisar y volver a intentar.')
 			print('')
 
+# Ask for the document to read the auto evaluation
+def get_auto_evaluation_sheet(google_credentials):
+	while True:
+		destiny_file_key = input('Ingresar la key del documento de auto evaluación: ')
+		try:
+			destiny_sheet = google_credentials.open_by_key(destiny_file_key)
+			print('Se va a utilizar el documento de auto evaluación con el nombre: \'' + destiny_sheet.title + '\'')
+			print('Es correcto? Presione \'s/n\'.')
+			if readchar.readchar() == 's':
+				print('Abriendo documento para comenzar a trabajar...')
+				print('')
+				return destiny_sheet
+		except:
+			print('El valor ingresado \'' + destiny_file_key + '\' no es válido. Revisar y volver a intentar.')
+			print('')
+
+# Ask for the document to read the evaluation
+def get_manager_evaluation_sheet(google_credentials):
+	while True:
+		destiny_file_key = input('Ingresar la key del documento de evaluación: ')
+		try:
+			destiny_sheet = google_credentials.open_by_key(destiny_file_key)
+			print('Se va a utilizar el documento de evaluación con el nombre: \'' + destiny_sheet.title + '\'')
+			print('Es correcto? Presione \'s/n\'.')
+			if readchar.readchar() == 's':
+				print('Abriendo documento para comenzar a trabajar...')
+				print('')
+				return destiny_sheet
+		except:
+			print('El valor ingresado \'' + destiny_file_key + '\' no es válido. Revisar y volver a intentar.')
+			print('')
+
 # Open and return the answers role sheet
 def get_answers_role_sheet(google_credentials):
 	print('Abriendo documento de respuestas de formulario para comenzar la copia...')
@@ -136,6 +168,7 @@ def get_answers_role_row(answers_role_sheet):
 			print('Es correcto? Presione \'s/n\'.')
 			if readchar.readchar() == 's':
 				print('Leyendo respuestas...')
+				print('')
 				return answers_row_index
 		except:
 			print('El valor ingresado \'' + answers_row_index + '\' no es válido. Revisar y volver a intentar.')
@@ -396,9 +429,69 @@ def copy_talents_for_scrum_masters(current_worksheet, previous_worksheet):
 	print('Actualizada tab: ' + current_worksheet.title)
 	print('')
 
+def build_exchange_form(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, answers_role_sheet, answers_role_row, date_to_append):
+	print('Copiando talentos seleccionados...')
+	print('')
+
+	for key, value in template_talents_dictionary.items():
+		build_exchange_form_in_single_worksheet(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, key, value[0], answers_role_sheet, answers_role_row, value[1], date_to_append, len(value[3]))
+
+	print('Copia de talentos finalizada!')
+	print('')
+
+def build_exchange_form_in_single_worksheet(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, worksheet_name, worksheet_identifier, answers_role_sheet, answers_role_row, answers_role_column, date_to_append, talents_amount):
+	# Get worksheet destiny based on worksheet_name and date_to_append
+	worksheet_destiny = destiny_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append)
+
+	# Get auto evaluation worksheet based on worksheet_name and date_to_append
+	auto_evaluation_sheet = auto_evaluation_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append)
+
+	# Get manager evaluation worksheet based on worksheet_name and date_to_append
+	manager_evaluation_sheet = manager_evaluation_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append)
+
+	# Cell from answers document with the selected talents. Info is separated by comma
+	answers_cell = answers_role_sheet.sheet1.cell(answers_role_column + answers_role_row).value.lower()
+
+	print('Comenzando a copiar talentos para tab: ' + worksheet_destiny.title)
+
+	# Array with the positions of the cells from worksheet which contain the titles for the talents
+	cells_with_titles_addresses = list(map(lambda each: 'B' + str(each), template_talents_dictionary[worksheet_name][3]))
+	cells_with_titles = list(map(lambda each: worksheet_destiny.cell(each), cells_with_titles_addresses))
+
+	# Array with the clean titles for the talents, after removing prefix
+	worksheet_talents = list(map(lambda each: each.value[(len(each.value.split()[0]) + 1):], cells_with_titles))
+
+	# Iterate over each of the titles that may appear in answers_role_sheet first sheet, copying those that are present in answers
+	for i, title in enumerate(worksheet_talents):
+		# If title is present in anwers, then the talent must he shown
+		should_copy_by_match = title.lower() in answers_cell
+		# This really makes me sad, but there are some talents that don't match between their names and the names in the answers form, so I ended up doing this
+		should_copy_by_exception_1 = worksheet_identifier == 'C' and title.lower() == 'calidad y mejora continua (calidad)' and 'calidad y mejora continua' in answers_cell
+		should_copy_by_exception_2 = worksheet_identifier == 'Dis' and title.lower() == 'comunicacion eficaz (diseño)' and 'comunicación eficaz' in answers_cell
+		should_copy_by_exception_3 = worksheet_identifier == 'Dis' and title.lower() == 'resolución de problemas' and 'resolución de probelmas' in answers_cell
+		should_copy_by_exception_4 = worksheet_identifier == 'SM' and title.lower() == 'colaboración / facilitador' and 'colaboración y facilitador' in answers_cell
+		should_copy_by_exception_5 = worksheet_identifier == 'SM' and title.lower() == 'iniciativa / autonomía' and 'iniciativa y autonomía' in answers_cell
+		if should_copy_by_match or should_copy_by_exception_1 or should_copy_by_exception_2 or should_copy_by_exception_3 or should_copy_by_exception_4:
+			copy_from = list(filter(lambda each: each.value.startswith(worksheet_identifier + str(i + 1)), cells_with_titles))[0].row + 3
+			copy_to = worksheet_destiny.rows if i + 1 == len(worksheet_talents) else list(filter(lambda each: each.value.startswith(worksheet_identifier + str(i + 2)), cells_with_titles))[0].row - 3
+
+			start_range_copy = 'G' + str(copy_from)
+			end_range_copy = 'I' + str(copy_to)
+			talent_from_auto_evaluation = auto_evaluation_sheet.get_values(start=start_range_copy, end=end_range_copy, majdim='COLUMNS')
+			talent_from_manager_evaluation = manager_evaluation_sheet.get_values(start=start_range_copy, end=end_range_copy, majdim='COLUMNS')
+
+			range_auto_evaluation = 'G' + str(copy_from) + ':' + 'I' + str(copy_to)
+			range_manager_evaluation = 'J' + str(copy_from) + ':' + 'L' + str(copy_to)
+
+			worksheet_destiny.update_values(crange=range_auto_evaluation, values=talent_from_auto_evaluation, majordim='COLUMNS')
+			worksheet_destiny.update_values(crange=range_manager_evaluation, values=talent_from_manager_evaluation, majordim='COLUMNS')
+
+			print('Copiando talento: ' + title)
+
+	print('')
+
 # Hide talents in destiny_sheet by reading the chosen ones from answers_role_sheet in answers_role_row
 def hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append):
-	print('')
 	print('Ocultando talentos no seleccionados...')
 	print('')
 
@@ -521,6 +614,11 @@ if not copy_should_be_omitted(destiny_sheet, date_to_append):
 	wait_for_quota_renewal()
 answers_role_sheet = get_answers_role_sheet(google_credentials)
 answers_role_row = get_answers_role_row(answers_role_sheet)
+if mode == EXCHANGE_EVALUATION:
+	auto_evaluation_sheet = get_auto_evaluation_sheet(google_credentials)
+	manager_evaluation_sheet = get_manager_evaluation_sheet(google_credentials)
+	build_exchange_form(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, answers_role_sheet, answers_role_row, date_to_append)
+	wait_for_quota_renewal()
 hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append)
 copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
 on_finish()
