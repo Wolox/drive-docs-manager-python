@@ -28,7 +28,7 @@ CREDENTIALS_FILE_PATH = 'client_secret.json'
 
 # For file named: 'Template - Evaluación Auxiliares'
 TEMPLATE_AUXILIAR_FILE_KEY = '1eB-6j0xc9qeFVtuF3xXfajiWD9e_TcFdxxTHHdlAjyU'
-TEMPLATE_AUXILIAR_FILE_TIMESTAMP = '2018-08-13T23:31:39.475Z'
+TEMPLATE_AUXILIAR_FILE_TIMESTAMP = '2018-08-14T04:09:48.994Z'
 
 # For file named: 'Template - Evaluación Talentos'
 TEMPLATE_TALENT_FILE_KEY = '1D04Q-IQ67F1wTAgk3oEr1Q902DJd4ulv666mBlcar6c'
@@ -53,19 +53,19 @@ FIRST_EVALUATION = "FIRST_EVALUATION"
 # This is a matching between a talent and a 4-tuple with:
 # (talent_identifier, columnt for talent in answers_role_sheet, row for talent in 'Desempeño', row in tab for title talents)
 template_talents_dictionary = {
-	'Universales': 					('U',	'J',	24,		[2, 12, 23, 35, 45, 56, 67, 78, 88, 99]),
-	'Administración y Finanzas': 	('AF',	'L',	48,		[2, 12, 22]),
-	'Business Dev': 				('BD',	'M',	64,		[2, 12, 22, 32, 42, 52]),
-	'Calidad': 						('C',	'P',	68,		[2, 12, 22, 32, 42]),
-	'Desarrollo': 					('Dev',	'K',	28,		[2, 11, 19, 27, 35]),
-	'Diseño': 						('Dis',	'N',	32,		[2, 10, 19, 28, 38]),
-	'QA': 							('QA',	'O',	52,		[2, 12, 23, 31, 41]),
-	'Referentes Técnicos': 			('RT',	'R',	72,		[2, 9]),
-	'Líderes':						('Lid',	'U',	36,		[2, 11, 21, 31, 41, 51, 61]),
-	'Marketing':					('M',	'V',	40,		[2, 11, 21, 31, 41]),
-	'Scrum Masters':				('SM',	'S',	60,		[2, 11, 21]),
-	'People Care':					('PC',	'Q',	44,		[2, 13, 24, 35, 44]),
-	'Team Managers':				('TM',	'T',	56,		[2, 12])
+	'Universales': 					('U',	'J',	28,		[2, 12, 23, 35, 45, 56, 67, 78, 88, 99]),
+	'Administración y Finanzas': 	('AF',	'L',	52,		[2, 12, 22]),
+	'Business Dev': 				('BD',	'M',	68,		[2, 12, 22, 32, 42, 52]),
+	'Calidad': 						('C',	'P',	72,		[2, 12, 22, 32, 42]),
+	'Desarrollo': 					('Dev',	'K',	32,		[2, 11, 19, 27, 35]),
+	'Diseño': 						('Dis',	'N',	36,		[2, 10, 19, 28, 38]),
+	'QA': 							('QA',	'O',	56,		[2, 12, 23, 31, 41]),
+	'Referentes Técnicos': 			('RT',	'R',	76,		[2, 9]),
+	'Líderes':						('Lid',	'U',	40,		[2, 11, 21, 31, 41, 51, 61]),
+	'Marketing':					('M',	'V',	44,		[2, 11, 21, 31, 41]),
+	'Scrum Masters':				('SM',	'S',	64,		[2, 11, 21]),
+	'People Care':					('PC',	'Q',	48,		[2, 13, 24, 35, 44]),
+	'Team Managers':				('TM',	'T',	60,		[2, 12])
 }
 
 # This is a matching between the auxiliar tabs and an array including the modes in which each tab is included
@@ -143,6 +143,22 @@ def get_manager_evaluation_sheet(google_credentials):
 		try:
 			destiny_sheet = google_credentials.open_by_key(destiny_file_key)
 			print('Se va a utilizar el documento de evaluación con el nombre: \'' + destiny_sheet.title + '\'')
+			print('Es correcto? Presione \'s/n\'.')
+			if readchar.readchar() == 's':
+				print('Abriendo documento para comenzar a trabajar...')
+				print('')
+				return destiny_sheet
+		except:
+			print('El valor ingresado \'' + destiny_file_key + '\' no es válido. Revisar y volver a intentar.')
+			print('')
+
+# Ask for the document to read the exchange evaluation
+def get_exchange_evaluation_sheet(google_credentials):
+	while True:
+		destiny_file_key = input('Ingresar la key del documento de evaluación de intercambio: ')
+		try:
+			destiny_sheet = google_credentials.open_by_key(destiny_file_key)
+			print('Se va a utilizar el documento de evaluación de intercambio con el nombre: \'' + destiny_sheet.title + '\'')
 			print('Es correcto? Presione \'s/n\'.')
 			if readchar.readchar() == 's':
 				print('Abriendo documento para comenzar a trabajar...')
@@ -337,7 +353,7 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 	if mode in template_auxiliar_dictionary['Desempeño']:
 		instance_worksheet = destiny_sheet.worksheet_by_title('Desempeño' + ' ' + date_to_append)
 		print('Actualizando instancia de evaluación en tab: ' + instance_worksheet.title)
-		instance_worksheet.update_value('F17', date_to_append)
+		instance_worksheet.update_value('F21', date_to_append)
 		print('Actualizada instancia de evaluación en tab: ' + instance_worksheet.title)
 		print('')
 
@@ -429,30 +445,37 @@ def copy_talents_for_scrum_masters(current_worksheet, previous_worksheet):
 	print('Actualizada tab: ' + current_worksheet.title)
 	print('')
 
-def build_exchange_form(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, answers_role_sheet, answers_role_row, date_to_append):
+def build_evaluation_form(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, exchange_evaluation_sheet, answers_role_sheet, answers_role_row, date_to_append, mode):
 	print('Copiando talentos seleccionados...')
 	print('')
 
 	for key, value in template_talents_dictionary.items():
-		build_exchange_form_in_single_worksheet(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, key, value[0], answers_role_sheet, answers_role_row, value[1], date_to_append, len(value[3]))
+		build_evaluation_form_in_single_worksheet(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, exchange_evaluation_sheet, key, value[0], answers_role_sheet, answers_role_row, value[1], date_to_append, len(value[3]), mode)
 
 	print('Copia de talentos finalizada!')
 	print('')
 
-def build_exchange_form_in_single_worksheet(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, worksheet_name, worksheet_identifier, answers_role_sheet, answers_role_row, answers_role_column, date_to_append, talents_amount):
+# Copies evaluated talents from a sheet to destiny. 
+# In case mode is EXCHANGE_EVALUATION it uses auto_evaluation_sheet and manager_evaluation_sheet.
+# In case mode is FIRST_EVALUATION it uses exchange_evaluation_sheet.
+def build_evaluation_form_in_single_worksheet(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, exchange_evaluation_sheet, worksheet_name, worksheet_identifier, answers_role_sheet, answers_role_row, answers_role_column, date_to_append, talents_amount, mode):
 	# Get worksheet destiny based on worksheet_name and date_to_append
 	worksheet_destiny = destiny_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append)
 
 	# Get auto evaluation worksheet based on worksheet_name and date_to_append
-	auto_evaluation_sheet = auto_evaluation_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append)
+	auto_evaluation_worksheet = auto_evaluation_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append) if mode == EXCHANGE_EVALUATION else None
 
 	# Get manager evaluation worksheet based on worksheet_name and date_to_append
-	manager_evaluation_sheet = manager_evaluation_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append)
+	manager_evaluation_worksheet = manager_evaluation_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append) if mode == EXCHANGE_EVALUATION else None
+
+	# Get exchange evaluation worksheet based on worksheet_name and date_to_append
+	exchange_evaluation_worksheet = exchange_evaluation_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append) if mode == FIRST_EVALUATION else None
 
 	# Cell from answers document with the selected talents. Info is separated by comma
 	answers_cell = answers_role_sheet.sheet1.cell(answers_role_column + answers_role_row).value.lower()
 
 	print('Comenzando a copiar talentos para tab: ' + worksheet_destiny.title)
+	print('(copiando)' if bool(answers_cell) else '(nada para copiar)')
 
 	# Array with the positions of the cells from worksheet which contain the titles for the talents
 	cells_with_titles_addresses = list(map(lambda each: 'B' + str(each), template_talents_dictionary[worksheet_name][3]))
@@ -475,16 +498,25 @@ def build_exchange_form_in_single_worksheet(destiny_sheet, auto_evaluation_sheet
 			copy_from = list(filter(lambda each: each.value.startswith(worksheet_identifier + str(i + 1)), cells_with_titles))[0].row + 3
 			copy_to = worksheet_destiny.rows if i + 1 == len(worksheet_talents) else list(filter(lambda each: each.value.startswith(worksheet_identifier + str(i + 2)), cells_with_titles))[0].row - 3
 
-			start_range_copy = 'G' + str(copy_from)
-			end_range_copy = 'I' + str(copy_to)
-			talent_from_auto_evaluation = auto_evaluation_sheet.get_values(start=start_range_copy, end=end_range_copy, majdim='COLUMNS')
-			talent_from_manager_evaluation = manager_evaluation_sheet.get_values(start=start_range_copy, end=end_range_copy, majdim='COLUMNS')
+			if mode == EXCHANGE_EVALUATION:
+				start_range_copy = 'G' + str(copy_from)
+				end_range_copy = 'I' + str(copy_to)
+				
+				range_auto_evaluation = 'G' + str(copy_from) + ':' + 'I' + str(copy_to)
+				talent_from_auto_evaluation = auto_evaluation_worksheet.get_values(start=start_range_copy, end=end_range_copy, majdim='COLUMNS')
+				worksheet_destiny.update_values(crange=range_auto_evaluation, values=talent_from_auto_evaluation, majordim='COLUMNS')
 
-			range_auto_evaluation = 'G' + str(copy_from) + ':' + 'I' + str(copy_to)
-			range_manager_evaluation = 'J' + str(copy_from) + ':' + 'L' + str(copy_to)
+				range_manager_evaluation = 'J' + str(copy_from) + ':' + 'L' + str(copy_to)
+				talent_from_manager_evaluation = manager_evaluation_worksheet.get_values(start=start_range_copy, end=end_range_copy, majdim='COLUMNS')
+				worksheet_destiny.update_values(crange=range_manager_evaluation, values=talent_from_manager_evaluation, majordim='COLUMNS')
 
-			worksheet_destiny.update_values(crange=range_auto_evaluation, values=talent_from_auto_evaluation, majordim='COLUMNS')
-			worksheet_destiny.update_values(crange=range_manager_evaluation, values=talent_from_manager_evaluation, majordim='COLUMNS')
+			if mode == FIRST_EVALUATION:
+				start_range_copy = 'M' + str(copy_from)
+				end_range_copy = 'O' + str(copy_to)
+
+				range_exchange_evaluation = 'G' + str(copy_from) + ':' + 'I' + str(copy_to)
+				talent_from_exchange_evaluation = exchange_evaluation_worksheet.get_values(start=start_range_copy, end=end_range_copy, majdim='COLUMNS')
+				worksheet_destiny.update_values(crange=range_exchange_evaluation, values=talent_from_exchange_evaluation, majordim='COLUMNS')
 
 			print('Copiando talento: ' + title)
 
@@ -614,10 +646,11 @@ if not copy_should_be_omitted(destiny_sheet, date_to_append):
 	wait_for_quota_renewal()
 answers_role_sheet = get_answers_role_sheet(google_credentials)
 answers_role_row = get_answers_role_row(answers_role_sheet)
-if mode == EXCHANGE_EVALUATION:
-	auto_evaluation_sheet = get_auto_evaluation_sheet(google_credentials)
-	manager_evaluation_sheet = get_manager_evaluation_sheet(google_credentials)
-	build_exchange_form(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, answers_role_sheet, answers_role_row, date_to_append)
+if mode == EXCHANGE_EVALUATION or mode == FIRST_EVALUATION:
+	auto_evaluation_sheet = get_auto_evaluation_sheet(google_credentials) if mode == EXCHANGE_EVALUATION else None
+	manager_evaluation_sheet = get_manager_evaluation_sheet(google_credentials) if mode == EXCHANGE_EVALUATION else None
+	exchange_evaluation_sheet = get_exchange_evaluation_sheet(google_credentials) if mode == FIRST_EVALUATION else None
+	build_evaluation_form(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, exchange_evaluation_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
 	wait_for_quota_renewal()
 hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append)
 copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
