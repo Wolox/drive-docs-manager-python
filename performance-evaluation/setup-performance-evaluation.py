@@ -341,12 +341,12 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 	print('Estado del documento actualizado!')
 	print('')
 
-	# For first time remove default worksheet, which after copying at the beggining, should be at the last index
-	default_worksheet = list(filter(lambda each: each.title.startswith('Sheet'), destiny_sheet.worksheets()))
-	if default_worksheet:
-		print('Borrando tab default: ' + default_worksheet[0].title)
-		destiny_sheet.del_worksheet(default_worksheet[0])
-		print('Borrada tab default: ' + default_worksheet[0].title)
+	# For new document evaluations, remove default worksheet
+	if mode != NEXT_EVALUATION:
+		default_worksheet = list(filter(lambda each: not each.title.endswith(date_to_append), destiny_sheet.worksheets()))[0]
+		print('Borrando tab default: ' + default_worksheet.title)
+		destiny_sheet.del_worksheet(default_worksheet)
+		print('Borrada tab default: ' + default_worksheet.title)
 		print('')
 
 	# Update cell with evaluation instance in 'Desempeño'
