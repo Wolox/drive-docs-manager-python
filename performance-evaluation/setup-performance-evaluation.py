@@ -220,11 +220,11 @@ def is_valid_date_to_append(date_to_append):
 def get_mode():
 	while True:
 		print('Ingresar modalidad de ejecución:')
-		print('1- Preparar formulario de evaluación para instancias posteriores')
+		print('1- Preparar informe de desempeño individual')
 		print('2- Preparar formulario de autoevaluación')
 		print('3- Preparar formulario de evaluación para evaluador')
 		print('4- Preparar formulario de evaluación para intercambio')
-		print('5- Completar formulario de primera evaluación después de intercambio')
+		print('5- Preparar informe de desempeño individual por primera vez')
 		input_mode = input('Ingresar opción \'1-5\': ')
 		mode = None
 		mode = NEXT_EVALUATION if input_mode == '1' else mode
