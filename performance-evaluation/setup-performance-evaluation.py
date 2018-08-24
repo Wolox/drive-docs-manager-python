@@ -463,7 +463,7 @@ def copy_talents_for_scrum_masters(current_worksheet, previous_worksheet):
 	print('')
 
 # Copy tabs from templates to destiny_sheet
-def copy_feedback(destiny_sheet, feedback_sheet, date_to_append, mode):
+def copy_feedback(destiny_sheet, feedback_sheet, date_to_append):
 	print('Copiando feedback...')
 	print('')
 
@@ -708,8 +708,9 @@ if mode == EXCHANGE_EVALUATION or mode == FIRST_EVALUATION:
 	exchange_evaluation_sheet = get_exchange_evaluation_sheet(google_credentials) if mode == FIRST_EVALUATION else None
 	build_evaluation_form(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, exchange_evaluation_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
 	wait_for_quota_renewal()
-feedback_sheet = get_feedback_sheet(google_credentials)
-copy_feedback(destiny_sheet, feedback_sheet, date_to_append, mode)
+if mode in template_auxiliar_dictionary['Feedback']:
+	feedback_sheet = get_feedback_sheet(google_credentials)
+	copy_feedback(destiny_sheet, feedback_sheet, date_to_append)
 hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append)
 copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
 on_finish()
