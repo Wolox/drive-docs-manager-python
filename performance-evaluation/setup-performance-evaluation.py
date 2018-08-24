@@ -28,7 +28,7 @@ CREDENTIALS_FILE_PATH = 'client_secret.json'
 
 # For file named: 'Template - Evaluación Auxiliares'
 TEMPLATE_AUXILIAR_FILE_KEY = '1eB-6j0xc9qeFVtuF3xXfajiWD9e_TcFdxxTHHdlAjyU'
-TEMPLATE_AUXILIAR_FILE_TIMESTAMP = '2018-08-17T23:34:20.843Z'
+TEMPLATE_AUXILIAR_FILE_TIMESTAMP = '2018-08-24T23:05:17.118Z'
 
 # For file named: 'Template - Evaluación Talentos'
 TEMPLATE_TALENT_FILE_KEY = '1D04Q-IQ67F1wTAgk3oEr1Q902DJd4ulv666mBlcar6c'
@@ -71,6 +71,7 @@ template_talents_dictionary = {
 # This is a matching between the auxiliar tabs and an array including the modes in which each tab is included
 template_auxiliar_dictionary = {
 	'Referencias matriz': 			[NEXT_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
+	'Feedback':				 		[NEXT_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
 	'Satisfacción Laboral': 		[NEXT_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
 	'Desempeño Evaluadores': 		[MANAGER_EVALUATION],
 	'Desempeño': 					[NEXT_EVALUATION, FIRST_EVALUATION],
@@ -166,6 +167,22 @@ def get_exchange_evaluation_sheet(google_credentials):
 				return destiny_sheet
 		except:
 			print('El valor ingresado \'' + destiny_file_key + '\' no es válido. Revisar y volver a intentar.')
+			print('')
+
+# Ask for the document to read the feedback
+def get_feedback_sheet(google_credentials):
+	while True:
+		feedback_file_key = input('Ingresar la key del documento de feedback: ')
+		try:
+			feedback_sheet = google_credentials.open_by_key(feedback_file_key)
+			print('Se va a utilizar el documento de feedback con el nombre: \'' + destiny_sheet.title + '\'')
+			print('Es correcto? Presione \'s/n\'.')
+			if readchar.readchar() == 's':
+				print('Abriendo documento para comenzar a trabajar...')
+				print('')
+				return feedback_sheet
+		except:
+			print('El valor ingresado \'' + feedback_file_key + '\' no es válido. Revisar y volver a intentar.')
 			print('')
 
 # Open and return the answers role sheet
@@ -445,6 +462,45 @@ def copy_talents_for_scrum_masters(current_worksheet, previous_worksheet):
 	print('Actualizada tab: ' + current_worksheet.title)
 	print('')
 
+# Copy tabs from templates to destiny_sheet
+def copy_feedback(destiny_sheet, feedback_sheet, date_to_append, mode):
+	print('Copiando feedback...')
+	print('')
+
+	# Get last feedback worksheet, in case there is any, to get last feedback copied
+	feedback_limit_index = 0
+	found_last_feedback_worksheet = list(filter(lambda each: each.title.startswith('Feedback') and not each.title.endswith(date_to_append), destiny_sheet.worksheets()))
+	if found_last_feedback_worksheet:
+		feedback_rows = found_last_feedback_worksheet[0].get_all_values()
+		feedback_rows = feedback_rows[6:]
+		feedback_rows = list(filter(lambda each: len(each[0]) > 0, feedback_rows))
+		last_feedback_timestamp = feedback_rows[-1][0] if feedback_rows else None
+		if last_feedback_timestamp:
+			feedback_limit_index = next(index for index, each in enumerate(feedback_rows) if each[0] == last_feedback_timestamp) + 1
+
+	# Get last feedback used, in order to avoid copying twice the same row
+	worksheet_feedback = feedback_sheet.worksheets()[0]
+	feedback_rows = worksheet_feedback.get_all_values()
+	feedback_rows = feedback_rows[1:]
+	feedback_rows = list(filter(lambda each: len(each[0]) > 0, feedback_rows))
+	feedback_rows_to_copy = feedback_rows[feedback_limit_index:]
+
+	# In case the feedback form has the old format, name column is removed
+	feedback_rows_titles = worksheet_feedback.get_all_values()[0]
+	contains_evaluated_column = 'Indica el nombre de la persona que le vas a dar feedback.' in feedback_rows_titles
+	if contains_evaluated_column:
+		feedback_rows_to_copy = list(map(lambda each: each[:2] + each[3:6], feedback_rows_to_copy))
+	else:
+		feedback_rows_to_copy = list(map(lambda each: each[:6], feedback_rows_to_copy))
+
+	# Get worksheet destiny based on worksheet_name and date_to_append
+	worksheet_destiny = destiny_sheet.worksheet_by_title('Feedback' + ' ' + date_to_append)
+	feedback_range = 'A7:E' + str(7 + len(feedback_rows_to_copy))
+	worksheet_destiny.update_values(crange=feedback_range, values=feedback_rows_to_copy)
+
+	print('Copiado feedback de ' + str(len(feedback_rows_to_copy)) + ' woloxers!')
+	print('')
+
 def build_evaluation_form(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, exchange_evaluation_sheet, answers_role_sheet, answers_role_row, date_to_append, mode):
 	print('Copiando talentos seleccionados...')
 	print('')
@@ -652,6 +708,8 @@ if mode == EXCHANGE_EVALUATION or mode == FIRST_EVALUATION:
 	exchange_evaluation_sheet = get_exchange_evaluation_sheet(google_credentials) if mode == FIRST_EVALUATION else None
 	build_evaluation_form(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, exchange_evaluation_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
 	wait_for_quota_renewal()
+feedback_sheet = get_feedback_sheet(google_credentials)
+copy_feedback(destiny_sheet, feedback_sheet, date_to_append, mode)
 hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append)
 copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
 on_finish()
