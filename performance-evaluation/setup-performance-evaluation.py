@@ -175,7 +175,7 @@ def get_feedback_sheet(google_credentials):
 		feedback_file_key = input('Ingresar la key del documento de feedback: ')
 		try:
 			feedback_sheet = google_credentials.open_by_key(feedback_file_key)
-			print('Se va a utilizar el documento de feedback con el nombre: \'' + destiny_sheet.title + '\'')
+			print('Se va a utilizar el documento de feedback con el nombre: \'' + feedback_sheet.title + '\'')
 			print('Es correcto? Presione \'s/n\'.')
 			if readchar.readchar() == 's':
 				print('Abriendo documento para comenzar a trabajar...')
