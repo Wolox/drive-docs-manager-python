@@ -469,7 +469,7 @@ def copy_feedback(destiny_sheet, feedback_sheet, date_to_append):
 
 	# Get last feedback worksheet, in case there is any, to get last feedback copied
 	feedback_limit_index = 0
-	found_last_feedback_worksheet = list(filter(lambda each: each.title.startswith('Feedback') and not each.title.endswith(date_to_append), destiny_sheet.worksheets()))
+	found_last_feedback_worksheet = list(filter(lambda each: each.title.startswith('Feedback') and not each.title.endswith(date_to_append) and bool(each.cell('A7').value), destiny_sheet.worksheets()))
 	if found_last_feedback_worksheet:
 		feedback_rows = found_last_feedback_worksheet[0].get_all_values()
 		feedback_rows = feedback_rows[6:]
@@ -485,18 +485,23 @@ def copy_feedback(destiny_sheet, feedback_sheet, date_to_append):
 	feedback_rows = list(filter(lambda each: len(each[0]) > 0, feedback_rows))
 	feedback_rows_to_copy = feedback_rows[feedback_limit_index:]
 
-	# In case the feedback form has the old format, name column is removed
-	feedback_rows_titles = worksheet_feedback.get_all_values()[0]
-	contains_evaluated_column = 'Indica el nombre de la persona que le vas a dar feedback.' in feedback_rows_titles
-	if contains_evaluated_column:
-		feedback_rows_to_copy = list(map(lambda each: each[:2] + each[3:6], feedback_rows_to_copy))
-	else:
+	if len(feedback_rows_to_copy) > 0:
+		# In case the feedback form has the old format, name column is removed
+		feedback_rows_titles = worksheet_feedback.get_all_values()[0]
+		contains_evaluated_column = 'Indica el nombre de la persona que le vas a dar feedback.' in feedback_rows_titles
 		feedback_rows_to_copy = list(map(lambda each: each[:6], feedback_rows_to_copy))
+		if contains_evaluated_column:
+			feedback_rows_to_copy = list(map(lambda each: each[:2] + each[3:], feedback_rows_to_copy))
 
-	# Get worksheet destiny based on worksheet_name and date_to_append
+		worksheet_destiny = destiny_sheet.worksheet_by_title('Feedback' + ' ' + date_to_append)
+		feedback_range = 'A7:E' + str(7 + len(feedback_rows_to_copy))
+		worksheet_destiny.update_values(crange=feedback_range, values=feedback_rows_to_copy)
+
+	# Hiding feedback sheet in case there is no feedback for this evaluation
 	worksheet_destiny = destiny_sheet.worksheet_by_title('Feedback' + ' ' + date_to_append)
-	feedback_range = 'A7:E' + str(7 + len(feedback_rows_to_copy))
-	worksheet_destiny.update_values(crange=feedback_range, values=feedback_rows_to_copy)
+	worksheet_destiny.hidden = len(feedback_rows_to_copy) == 0
+	print('Tab de: ' + worksheet_destiny.title)
+	print('(oculta)' if len(feedback_rows_to_copy) == 0 else '(visible)')
 
 	print('Copiado feedback de ' + str(len(feedback_rows_to_copy)) + ' woloxers!')
 	print('')
@@ -708,9 +713,9 @@ if mode == EXCHANGE_EVALUATION or mode == FIRST_EVALUATION:
 	exchange_evaluation_sheet = get_exchange_evaluation_sheet(google_credentials) if mode == FIRST_EVALUATION else None
 	build_evaluation_form(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, exchange_evaluation_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
 	wait_for_quota_renewal()
+hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append)
+copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
 if mode in template_auxiliar_dictionary['Feedback']:
 	feedback_sheet = get_feedback_sheet(google_credentials)
 	copy_feedback(destiny_sheet, feedback_sheet, date_to_append)
-hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append)
-copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
 on_finish()
