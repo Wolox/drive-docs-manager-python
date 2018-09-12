@@ -75,6 +75,7 @@ template_auxiliar_dictionary = {
 	'Satisfacción Laboral': 		[NEXT_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
 	'Desempeño Evaluadores': 		[MANAGER_EVALUATION],
 	'Desempeño': 					[NEXT_EVALUATION, FIRST_EVALUATION],
+	'Desempeño Intercambio':		[EXCHANGE_EVALUATION],
 	'Objetivos y Capacitaciones': 	[NEXT_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
 	'Referencias': 					[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
 }
@@ -379,6 +380,14 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 		instance_worksheet = destiny_sheet.worksheet_by_title('Desempeño Evaluadores' + ' ' + date_to_append)
 		print('Actualizando instancia de evaluación en tab: ' + instance_worksheet.title)
 		instance_worksheet.update_value('A22', date_to_append)
+		print('Actualizada instancia de evaluación en tab: ' + instance_worksheet.title)
+		print('')
+
+	# Update cell with evaluation instance in 'Desempeño Intercambio'
+	if mode in template_auxiliar_dictionary['Desempeño Intercambio']:
+		instance_worksheet = destiny_sheet.worksheet_by_title('Desempeño Intercambio' + ' ' + date_to_append)
+		print('Actualizando instancia de evaluación en tab: ' + instance_worksheet.title)
+		instance_worksheet.update_value('F21', date_to_append)
 		print('Actualizada instancia de evaluación en tab: ' + instance_worksheet.title)
 		print('')
 
