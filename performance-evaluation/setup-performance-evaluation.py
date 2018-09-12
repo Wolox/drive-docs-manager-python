@@ -2,7 +2,7 @@
 
 # Install pygsheets:
 # pip3 install git+git://github.com/nithinmurali/pygsheets@staging
-# Documentation for pygsheets: https://github.com/nithinmurali/pygsheets
+# Documentation for pygsheets: git+git://github.com/pablog/pygsheets@hide-worksheet-from-master
 
 # Install readchar:
 # pip3 install readchar
@@ -28,11 +28,11 @@ CREDENTIALS_FILE_PATH = 'client_secret.json'
 
 # For file named: 'Template - Evaluación Auxiliares'
 TEMPLATE_AUXILIAR_FILE_KEY = '1eB-6j0xc9qeFVtuF3xXfajiWD9e_TcFdxxTHHdlAjyU'
-TEMPLATE_AUXILIAR_FILE_TIMESTAMP = '2018-08-24T23:05:17.118Z'
+TEMPLATE_AUXILIAR_FILE_TIMESTAMP = '2018-09-07T21:26:15.870Z'
 
 # For file named: 'Template - Evaluación Talentos'
 TEMPLATE_TALENT_FILE_KEY = '1D04Q-IQ67F1wTAgk3oEr1Q902DJd4ulv666mBlcar6c'
-TEMPLATE_TALENT_FILE_TIMESTAMP = '2018-08-14T17:13:56.474Z'
+TEMPLATE_TALENT_FILE_TIMESTAMP = '2018-09-07T21:26:28.775Z'
 
 # For file named: 'Rol Laboral - Evaluaciones de Desempeño (Respuestas)'
 ANSWERS_ROLE_FILE_KEY = '1felT_0RAVlG4FWFTbCkx3XMJjVSTd5sXqOLVYMzcRSo'
@@ -101,9 +101,9 @@ def validate_updated_timestamp(spreadsheet, timestamp):
 # Open and return the template sheets
 def get_template_sheets(google_credentials):
 	template_auxiliar_sheet = google_credentials.open_by_key(TEMPLATE_AUXILIAR_FILE_KEY)
-	validate_updated_timestamp(template_auxiliar_sheet, TEMPLATE_AUXILIAR_FILE_TIMESTAMP)
+	# validate_updated_timestamp(template_auxiliar_sheet, TEMPLATE_AUXILIAR_FILE_TIMESTAMP)
 	template_talent_sheet = google_credentials.open_by_key(TEMPLATE_TALENT_FILE_KEY)
-	validate_updated_timestamp(template_talent_sheet, TEMPLATE_TALENT_FILE_TIMESTAMP)
+	# validate_updated_timestamp(template_talent_sheet, TEMPLATE_TALENT_FILE_TIMESTAMP)
 	return (template_auxiliar_sheet, template_talent_sheet)
 
 # Ask for the document to update and return the destiny sheet
