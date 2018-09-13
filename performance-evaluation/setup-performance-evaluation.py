@@ -498,9 +498,9 @@ def copy_feedback(destiny_sheet, feedback_sheet, date_to_append):
 		# In case the feedback form has the old format, name column is removed
 		feedback_rows_titles = worksheet_feedback.get_all_values()[0]
 		contains_evaluated_column = 'Indica el nombre de la persona que le vas a dar feedback.' in feedback_rows_titles
-		feedback_rows_to_copy = list(map(lambda each: each[:6], feedback_rows_to_copy))
+		feedback_rows_to_copy = list(map(lambda each: each[:5], feedback_rows_to_copy))
 		if contains_evaluated_column:
-			feedback_rows_to_copy = list(map(lambda each: each[:2] + each[3:], feedback_rows_to_copy))
+			feedback_rows_to_copy = list(map(lambda each: each[:2] + each[3:6], feedback_rows_to_copy))
 
 		worksheet_destiny = destiny_sheet.worksheet_by_title('Feedback' + ' ' + date_to_append)
 		feedback_range = 'A7:E' + str(7 + len(feedback_rows_to_copy))
