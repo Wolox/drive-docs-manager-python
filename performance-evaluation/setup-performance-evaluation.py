@@ -47,6 +47,22 @@ MANAGER_EVALUATION = "MANAGER_EVALUATION"
 EXCHANGE_EVALUATION = "EXCHANGE_EVALUATION"
 # Mode for creating the first evaluation form after filling the agreement form.
 FIRST_EVALUATION = "FIRST_EVALUATION"
+# Mode for updating feedback for a given evaluation.
+UPDATE_FEEDBACK = "UPDATE_FEEDBACK"
+
+OPERATION_COPY_TABS = "OPERATION_COPY_TABS"
+OPERATION_BUILD_EVALUATION_FORM = "OPERATION_BUILD_EVALUATION_FORM"
+OPERATION_HIDE_TALENTS = "OPERATION_HIDE_TALENTS"
+OPERATION_COPY_ANSWERS = "OPERATION_COPY_ANSWERS"
+OPERATION_COPY_FEEDBACK = "OPERATION_COPY_FEEDBACK"
+
+operations_by_mode_dictionary = {
+	OPERATION_COPY_TABS: 				[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
+	OPERATION_BUILD_EVALUATION_FORM:	[EXCHANGE_EVALUATION, FIRST_EVALUATION],
+	OPERATION_HIDE_TALENTS: 			[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
+	OPERATION_COPY_ANSWERS: 			[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
+	OPERATION_COPY_FEEDBACK:			[NEXT_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION, UPDATE_FEEDBACK],
+}
 
 # Structs declarations
 
@@ -243,13 +259,15 @@ def get_mode():
 		print('3- Preparar formulario de evaluación para evaluador')
 		print('4- Preparar formulario de evaluación para intercambio')
 		print('5- Preparar informe de desempeño individual por primera vez')
-		input_mode = input('Ingresar opción \'1-5\': ')
+		print('6- Actualizar feedback de una evaluación existente')
+		input_mode = input('Ingresar opción \'1-6\': ')
 		mode = None
 		mode = NEXT_EVALUATION if input_mode == '1' else mode
 		mode = AUTO_EVALUATION if input_mode == '2' else mode
 		mode = MANAGER_EVALUATION if input_mode == '3' else mode
 		mode = EXCHANGE_EVALUATION if input_mode == '4' else mode
 		mode = FIRST_EVALUATION if input_mode == '5' else mode
+		mode = UPDATE_FEEDBACK if input_mode == '6' else mode
 		if mode is None:
 			print('El valor ingresado \'' + input_mode + '\' no es válido. Revisar y volver a intentar.')
 			continue
@@ -712,20 +730,30 @@ google_credentials = get_google_credentials()
 mode = get_mode()
 destiny_sheet = get_destiny_sheet(google_credentials)
 date_to_append = get_date_to_append()
-if not copy_should_be_omitted(destiny_sheet, date_to_append):
-	copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, date_to_append, mode)
-	wait_for_quota_renewal()
+
+if mode in operations_by_mode_dictionary[OPERATION_COPY_TABS]:
+	if not copy_should_be_omitted(destiny_sheet, date_to_append):
+		copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, date_to_append, mode)
+		wait_for_quota_renewal()
+
 answers_role_sheet = get_answers_role_sheet(google_credentials)
 answers_role_row = get_answers_role_row(answers_role_sheet)
-if mode == EXCHANGE_EVALUATION or mode == FIRST_EVALUATION:
+
+if mode in operations_by_mode_dictionary[OPERATION_BUILD_EVALUATION_FORM]:
 	auto_evaluation_sheet = get_auto_evaluation_sheet(google_credentials) if mode == EXCHANGE_EVALUATION else None
 	manager_evaluation_sheet = get_manager_evaluation_sheet(google_credentials) if mode == EXCHANGE_EVALUATION else None
 	exchange_evaluation_sheet = get_exchange_evaluation_sheet(google_credentials) if mode == FIRST_EVALUATION else None
 	build_evaluation_form(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, exchange_evaluation_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
 	wait_for_quota_renewal()
-hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append)
-copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
-if mode in template_auxiliar_dictionary['Feedback']:
+
+if mode in operations_by_mode_dictionary[OPERATION_HIDE_TALENTS]:
+	hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append)
+
+if mode in operations_by_mode_dictionary[OPERATION_COPY_ANSWERS]:
+	copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
+
+if mode in operations_by_mode_dictionary[OPERATION_COPY_FEEDBACK]:
 	feedback_sheet = get_feedback_sheet(google_credentials)
 	copy_feedback(destiny_sheet, feedback_sheet, date_to_append)
+
 on_finish()
