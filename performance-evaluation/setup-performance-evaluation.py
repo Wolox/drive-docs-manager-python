@@ -227,6 +227,21 @@ def get_answers_role_row(answers_role_sheet):
 			print('El valor ingresado \'' + answers_row_index + '\' no es válido. Revisar y volver a intentar.')
 			print('')
 
+# Ask for RID instance to append
+def get_rid_instance_to_append():
+	while True:
+		rid_instance_to_append = input('Ingresar instancia de RID. Ejemplo: \'1\': ')
+		if not rid_instance_to_append.isnumeric() or int(rid_instance_to_append) < 1 or int(rid_instance_to_append) > 9:
+			print('El valor ingresado \'' + rid_instance_to_append + '\' no es válido. Revisar y volver a intentar.')
+			continue
+
+		print('Instancia ingresada: \'' + rid_instance_to_append + '\'')
+		print('Es correcto? Presione \'s/n\'.')
+		if readchar.readchar() == 's':
+			print('Instancia confirmada...')
+			print('')
+			return rid_instance_to_append
+
 # Ask for date to append as evaluation instance
 def get_date_to_append():
 	while True:
@@ -255,29 +270,48 @@ def is_valid_date_to_append(date_to_append):
 
 # Ask for mode to run the script
 def get_mode():
+	mode_next_evaluation = '1- Preparar informe de desempeño individual'
+	mode_auto_evaluation = '2- Preparar formulario de autoevaluación'
+	mode_manager_evaluation = '3- Preparar formulario de evaluación para evaluador'
+	mode_exchange_evaluation = '4- Preparar formulario de evaluación para intercambio'
+	mode_first_evaluation = '5- Preparar informe de desempeño individual por primera vez'
+	mode_rid_evaluation = '6- Preparar informe de RID'
+	mode_update_feedback = '7- Actualizar feedback de una evaluación existente'
 	while True:
 		print('Ingresar modalidad de ejecución:')
-		print('1- Preparar informe de desempeño individual')
-		print('2- Preparar formulario de autoevaluación')
-		print('3- Preparar formulario de evaluación para evaluador')
-		print('4- Preparar formulario de evaluación para intercambio')
-		print('5- Preparar informe de desempeño individual por primera vez')
-		print('6- Preparar informe de RID')
-		print('7- Actualizar feedback de una evaluación existente')
-		input_mode = input('Ingresar opción \'1-6\': ')
+		print(mode_next_evaluation)
+		print(mode_auto_evaluation)
+		print(mode_manager_evaluation)
+		print(mode_exchange_evaluation)
+		print(mode_first_evaluation)
+		print(mode_rid_evaluation)
+		print(mode_update_feedback)
+
+		input_mode_number = input('Ingresar opción \'1-7\': ')
 		mode = None
-		mode = NEXT_EVALUATION if input_mode == '1' else mode
-		mode = AUTO_EVALUATION if input_mode == '2' else mode
-		mode = MANAGER_EVALUATION if input_mode == '3' else mode
-		mode = EXCHANGE_EVALUATION if input_mode == '4' else mode
-		mode = FIRST_EVALUATION if input_mode == '5' else mode
-		mode = RID_EVALUATION if input_mode == '6' else mode
-		mode = UPDATE_FEEDBACK if input_mode == '7' else mode
+		mode = NEXT_EVALUATION if input_mode_number == '1' else mode
+		mode = AUTO_EVALUATION if input_mode_number == '2' else mode
+		mode = MANAGER_EVALUATION if input_mode_number == '3' else mode
+		mode = EXCHANGE_EVALUATION if input_mode_number == '4' else mode
+		mode = FIRST_EVALUATION if input_mode_number == '5' else mode
+		mode = RID_EVALUATION if input_mode_number == '6' else mode
+		mode = UPDATE_FEEDBACK if input_mode_number == '7' else mode
+
 		if mode is None:
-			print('El valor ingresado \'' + input_mode + '\' no es válido. Revisar y volver a intentar.')
+			print('El valor ingresado \'' + input_mode_number + '\' no es válido. Revisar y volver a intentar.')
+			print('')
 			continue
 
-		print('Modalidad ingresada: \'' + input_mode + '\'')
+		input_mode = None
+		input_mode = mode_next_evaluation if mode == NEXT_EVALUATION else input_mode
+		input_mode = mode_auto_evaluation if mode == AUTO_EVALUATION else input_mode
+		input_mode = mode_manager_evaluation if mode == MANAGER_EVALUATION else input_mode
+		input_mode = mode_exchange_evaluation if mode == EXCHANGE_EVALUATION else input_mode
+		input_mode = mode_first_evaluation if mode == FIRST_EVALUATION else input_mode
+		input_mode = mode_rid_evaluation if mode == RID_EVALUATION else input_mode
+		input_mode = mode_update_feedback if mode == UPDATE_FEEDBACK else input_mode
+
+		print('Modalidad ingresada: \'' + input_mode[3:] + '\'')
 		print('Es correcto? Presione \'s/n\'.')
 		if readchar.readchar() == 's':
 			print('Modalidad confirmada...')
@@ -286,7 +320,8 @@ def get_mode():
 
 # If destiny sheet contains an evaluation for date to append, then the copy should not be re done
 def copy_should_be_omitted(destiny_sheet, date_to_append):
-	if destiny_sheet.sheet1.title.endswith(date_to_append):
+	already_present = next((index for index, each in enumerate(destiny_sheet.worksheets()) if not 'RID' in each.title and each.title.endswith(date_to_append)), None) 
+	if already_present:
 		print('')
 		print('Ya existe una evaluación para la instancia: \'' + date_to_append + '\'')
 		print('La copia de tabs no se va a realizar. Sólo se van a ocultar las tabs y talentos, y copiar las respuestas.')
@@ -312,7 +347,7 @@ def on_finish():
 	print('Ejecución finalizada con éxito! No olvidar verificar el estado del documento de forma manual.')
 
 # Copy tabs from templates to destiny_sheet
-def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, date_to_append, mode):
+def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, date_to_append, rid_instance_to_append, mode):
 	destiny_worksheets = destiny_sheet.worksheets()
 	template_auxiliar_worksheets = template_auxiliar_sheet.worksheets()
 	template_talent_worksheets = template_talent_sheet.worksheets()
@@ -327,8 +362,12 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 	# This limit is when the worksheet named 'Referencias' or 'Referencias N/YY' is found
 	destiny_last_evaluation_worksheets = []
 	if mode == NEXT_EVALUATION:
-		limit_index = next(index for index, each in enumerate(destiny_worksheets) if each.index > 0 and each.title.startswith('Referencias')) + 1
-		destiny_last_evaluation_worksheets = destiny_worksheets[0:limit_index]
+		start_index = next(index for index, each in enumerate(destiny_worksheets) if not 'RID' in each.title and 'Referencias matriz' in each.title)
+		end_index = next(index for index, each in enumerate(destiny_worksheets) if not 'RID' in each.title and 'Referencias' in each.title and not 'Referencias matriz' in each.title) + 1
+		destiny_last_evaluation_worksheets = destiny_worksheets[start_index:end_index]
+	if mode == RID_EVALUATION and len(destiny_worksheets) > 1:
+		end_index = next(index for index, each in enumerate(destiny_worksheets) if each.index > 0 and 'Referencias' in each.title and not 'Referencias matriz' in each.title) + 1
+		destiny_last_evaluation_worksheets = destiny_worksheets[0:end_index]
 
 	# Iterate over template talent worksheets copying each talent tab. In case the same tab already exists in destiny worksheet, then use it
 	for i, worksheet in enumerate(template_talent_worksheets):
@@ -338,7 +377,7 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 
 		# If RID is contained in title, we know for sure, it also ends in digit.
 		if 'RID' in worksheet.title:
-			clean_title_to_search = worksheet.title[:-8]
+			clean_title_to_search = worksheet.title[:-11]
 		# If RID is not contained, it may end in digit.
 		elif worksheet.title[-1].isdigit():
 			clean_title_to_search = worksheet.title[:-5]
@@ -364,9 +403,12 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 
 	for i, worksheet in enumerate(worksheets_to_copy):
 
+		# Need to check this tab in a different clause, to avoid entering in second if.
+		if 'Síntesis RID' in worksheet.title:
+			clean_title = worksheet.title
 		# If RID is contained in title, we know for sure, it also ends in digit.
-		if 'RID' in worksheet.title:
-			clean_title = worksheet.title[:-8]
+		elif 'RID' in worksheet.title:
+			clean_title = worksheet.title[:-11]
 		# If RID is not contained, it may end in digit.
 		elif worksheet.title[-1].isdigit():
 			clean_title = worksheet.title[:-5]
@@ -374,7 +416,8 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 		else:
 			clean_title = worksheet.title
 
-		title = (clean_title if not mode == RID_EVALUATION else clean_title + ' ' + 'RID') + ' ' + date_to_append
+		title = clean_title if not mode == RID_EVALUATION else clean_title + ' ' + 'RID' + ' ' + rid_instance_to_append
+		title = title + ' ' + date_to_append
 		print('Copiando tab (' + str(i) + '): ' + title + ' -- desde: ' + worksheet.title)
 		new_worksheet = destiny_sheet.add_worksheet(title, src_worksheet=worksheet)
 		new_worksheet.index = i
@@ -392,7 +435,9 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 
 	# Removing unused cols for every talent worksheet in case the worksheet was copied from template
 	for key, value in template_talents_dictionary.items():
-		worksheet = destiny_sheet.worksheet_by_title(key + ' ' + date_to_append)
+		worksheet_title = key if not mode == RID_EVALUATION else key + ' ' + 'RID' + ' ' + rid_instance_to_append
+		worksheet_title = worksheet_title + ' ' + date_to_append
+		worksheet = destiny_sheet.worksheet_by_title(worksheet_title)
 		if worksheet.cols == 19:
 			column_to_remove_start_index = 16 if mode == EXCHANGE_EVALUATION else 7
 			column_to_remove_amount = 3 if mode == EXCHANGE_EVALUATION else 9
@@ -410,6 +455,7 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 		print('')
 
 	# Update cell with evaluation instance in 'Desempeño'
+	# No need to check for RID since this tab is not present in this mode.
 	if mode in template_auxiliar_dictionary['Desempeño']:
 		instance_worksheet = destiny_sheet.worksheet_by_title('Desempeño' + ' ' + date_to_append)
 		print('Actualizando instancia de evaluación en tab: ' + instance_worksheet.title)
@@ -418,6 +464,7 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 		print('')
 
 	# Update cell with evaluation instance in 'Desempeño Evaluadores'
+	# No need to check for RID since this tab is not present in this mode.
 	if mode in template_auxiliar_dictionary['Desempeño Evaluadores']:
 		instance_worksheet = destiny_sheet.worksheet_by_title('Desempeño Evaluadores' + ' ' + date_to_append)
 		print('Actualizando instancia de evaluación en tab: ' + instance_worksheet.title)
@@ -426,6 +473,7 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 		print('')
 
 	# Update cell with evaluation instance in 'Desempeño Intercambio'
+	# No need to check for RID since this tab is not present in this mode.
 	if mode in template_auxiliar_dictionary['Desempeño Intercambio']:
 		instance_worksheet = destiny_sheet.worksheet_by_title('Desempeño Intercambio' + ' ' + date_to_append)
 		print('Actualizando instancia de evaluación en tab: ' + instance_worksheet.title)
@@ -434,14 +482,20 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 		print('')
 
 	# Update talent cells 'Desarrollo' since it may have changes
-	current_development_worksheet = destiny_sheet.worksheet_by_title('Desarrollo' + ' ' + date_to_append)
-	previous_development_worksheet = list(filter(lambda each: each.title.startswith('Desarrollo') and each.index > current_development_worksheet.index, destiny_sheet.worksheets()))
+	# Current one may be RID or not. Previous one has to be last evaluation but not RID
+	current_development_worksheet_title = 'Desarrollo' if not mode == RID_EVALUATION else 'Desarrollo' + ' ' + 'RID' + ' ' + rid_instance_to_append
+	current_development_worksheet_title = current_development_worksheet_title + ' ' + date_to_append
+	current_development_worksheet = destiny_sheet.worksheet_by_title(current_development_worksheet_title)
+	previous_development_worksheet = list(filter(lambda each: each.title.startswith('Desarrollo') and not 'RID' in each.title and each.index > current_development_worksheet.index, destiny_sheet.worksheets()))
 	previous_development_worksheet = previous_development_worksheet[0] if previous_development_worksheet else None
 	copy_talents_for_development(current_development_worksheet, previous_development_worksheet)
 
 	# Update talent cells 'Scrum Masters' since it may have changes
-	current_scrum_masters_worksheet = destiny_sheet.worksheet_by_title('Scrum Masters' + ' ' + date_to_append)
-	previous_scrum_masters_worksheet = list(filter(lambda each: each.title.startswith('Scrum Masters') and each.index > current_scrum_masters_worksheet.index, destiny_sheet.worksheets()))
+	# Current one may be RID or not. Previous one has to be last evaluation but not RID
+	current_scrum_masters_worksheet_title = 'Scrum Masters' if not mode == RID_EVALUATION else 'Scrum Masters' + ' ' + 'RID' + ' ' + rid_instance_to_append
+	current_scrum_masters_worksheet_title = current_scrum_masters_worksheet_title + ' ' + date_to_append
+	current_scrum_masters_worksheet = destiny_sheet.worksheet_by_title(current_scrum_masters_worksheet_title)
+	previous_scrum_masters_worksheet = list(filter(lambda each: each.title.startswith('Scrum Masters') and not 'RID' in each.title and each.index > current_scrum_masters_worksheet.index, destiny_sheet.worksheets()))
 	previous_scrum_masters_worksheet = previous_scrum_masters_worksheet[0] if previous_scrum_masters_worksheet else None
 	copy_talents_for_scrum_masters(current_scrum_masters_worksheet, previous_scrum_masters_worksheet)
 
@@ -754,11 +808,13 @@ google_credentials = get_google_credentials()
 mode = get_mode()
 destiny_sheet = get_destiny_sheet(google_credentials)
 date_to_append = get_date_to_append()
+rid_instance_to_append = get_rid_instance_to_append() if mode == RID_EVALUATION else None
 
 if mode in operations_by_mode_dictionary[OPERATION_COPY_TABS]:
 	if not copy_should_be_omitted(destiny_sheet, date_to_append):
-		copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, date_to_append, mode)
-		wait_for_quota_renewal()
+		copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, date_to_append, rid_instance_to_append, mode)
+		if not mode == RID_EVALUATION:
+			wait_for_quota_renewal()
 
 mode_build_evaluation_form = mode in operations_by_mode_dictionary[OPERATION_BUILD_EVALUATION_FORM]
 mode_hide_talents = mode in operations_by_mode_dictionary[OPERATION_HIDE_TALENTS]
