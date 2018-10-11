@@ -47,6 +47,8 @@ MANAGER_EVALUATION = "MANAGER_EVALUATION"
 EXCHANGE_EVALUATION = "EXCHANGE_EVALUATION"
 # Mode for creating the first evaluation form after filling the agreement form.
 FIRST_EVALUATION = "FIRST_EVALUATION"
+# Mode for creating a RID evaluation.
+RID_EVALUATION = "RID_EVALUATION"
 # Mode for updating feedback for a given evaluation.
 UPDATE_FEEDBACK = "UPDATE_FEEDBACK"
 
@@ -57,7 +59,7 @@ OPERATION_COPY_ANSWERS = "OPERATION_COPY_ANSWERS"
 OPERATION_COPY_FEEDBACK = "OPERATION_COPY_FEEDBACK"
 
 operations_by_mode_dictionary = {
-	OPERATION_COPY_TABS: 				[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
+	OPERATION_COPY_TABS: 				[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION, RID_EVALUATION],
 	OPERATION_BUILD_EVALUATION_FORM:	[EXCHANGE_EVALUATION, FIRST_EVALUATION],
 	OPERATION_HIDE_TALENTS: 			[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
 	OPERATION_COPY_ANSWERS: 			[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
@@ -93,7 +95,8 @@ template_auxiliar_dictionary = {
 	'Desempeño': 					[NEXT_EVALUATION, FIRST_EVALUATION],
 	'Desempeño Intercambio':		[EXCHANGE_EVALUATION],
 	'Objetivos y Capacitaciones': 	[NEXT_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
-	'Referencias': 					[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
+	'Síntesis RID': 				[RID_EVALUATION],
+	'Referencias': 					[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION, RID_EVALUATION],
 }
 
 # Function declarations
@@ -259,7 +262,8 @@ def get_mode():
 		print('3- Preparar formulario de evaluación para evaluador')
 		print('4- Preparar formulario de evaluación para intercambio')
 		print('5- Preparar informe de desempeño individual por primera vez')
-		print('6- Actualizar feedback de una evaluación existente')
+		print('6- Preparar informe de RID')
+		print('7- Actualizar feedback de una evaluación existente')
 		input_mode = input('Ingresar opción \'1-6\': ')
 		mode = None
 		mode = NEXT_EVALUATION if input_mode == '1' else mode
@@ -267,7 +271,8 @@ def get_mode():
 		mode = MANAGER_EVALUATION if input_mode == '3' else mode
 		mode = EXCHANGE_EVALUATION if input_mode == '4' else mode
 		mode = FIRST_EVALUATION if input_mode == '5' else mode
-		mode = UPDATE_FEEDBACK if input_mode == '6' else mode
+		mode = RID_EVALUATION if input_mode == '6' else mode
+		mode = UPDATE_FEEDBACK if input_mode == '7' else mode
 		if mode is None:
 			print('El valor ingresado \'' + input_mode + '\' no es válido. Revisar y volver a intentar.')
 			continue
@@ -331,8 +336,17 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 		if worksheet.index > 0 and worksheet.title.startswith('Referencias'):
 			break
 
+		# If RID is contained in title, we know for sure, it also ends in digit.
+		if 'RID' in worksheet.title:
+			clean_title_to_search = worksheet.title[:-8]
+		# If RID is not contained, it may end in digit.
+		elif worksheet.title[-1].isdigit():
+			clean_title_to_search = worksheet.title[:-5]
+		# If RID is not contained and it does not end in digit.
+		else:
+			clean_title_to_search = worksheet.title
+
 		# Every worksheet is copied, in case it is already present in destiny_worksheet, it must be taken from there
-		clean_title_to_search = worksheet.title if not worksheet.title[-1].isdigit() else worksheet.title[:-5]
 		found_destiny_worksheet = list(filter(lambda each: each.title.startswith(clean_title_to_search), destiny_last_evaluation_worksheets))
 		worksheet_to_copy = worksheet if not found_destiny_worksheet else found_destiny_worksheet[0]
 		
@@ -349,8 +363,18 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 	print('')
 
 	for i, worksheet in enumerate(worksheets_to_copy):
-		# If title finishes in number it assumes the date needs to be removed and replaced by date_to_append
-		title = (worksheet.title if not worksheet.title[-1].isdigit() else worksheet.title[:-5]) + ' ' + date_to_append
+
+		# If RID is contained in title, we know for sure, it also ends in digit.
+		if 'RID' in worksheet.title:
+			clean_title = worksheet.title[:-8]
+		# If RID is not contained, it may end in digit.
+		elif worksheet.title[-1].isdigit():
+			clean_title = worksheet.title[:-5]
+		# If RID is not contained and it does not end in digit.
+		else:
+			clean_title = worksheet.title
+
+		title = (clean_title if not mode == RID_EVALUATION else clean_title + ' ' + 'RID') + ' ' + date_to_append
 		print('Copiando tab (' + str(i) + '): ' + title + ' -- desde: ' + worksheet.title)
 		new_worksheet = destiny_sheet.add_worksheet(title, src_worksheet=worksheet)
 		new_worksheet.index = i
@@ -377,8 +401,8 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 	print('Estado del documento actualizado!')
 	print('')
 
-	# For new document evaluations, remove default worksheet
-	if mode != NEXT_EVALUATION:
+	# For new document evaluations, the number of copied sheets more the default one will match the current ones
+	if len(destiny_sheet.worksheets()) == len(worksheets_to_copy) + 1:
 		default_worksheet = list(filter(lambda each: not each.title.endswith(date_to_append), destiny_sheet.worksheets()))[0]
 		print('Borrando tab default: ' + default_worksheet.title)
 		destiny_sheet.del_worksheet(default_worksheet)
@@ -736,8 +760,13 @@ if mode in operations_by_mode_dictionary[OPERATION_COPY_TABS]:
 		copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, date_to_append, mode)
 		wait_for_quota_renewal()
 
-answers_role_sheet = get_answers_role_sheet(google_credentials)
-answers_role_row = get_answers_role_row(answers_role_sheet)
+mode_build_evaluation_form = mode in operations_by_mode_dictionary[OPERATION_BUILD_EVALUATION_FORM]
+mode_hide_talents = mode in operations_by_mode_dictionary[OPERATION_HIDE_TALENTS]
+mode_copy_answers = mode in operations_by_mode_dictionary[OPERATION_COPY_ANSWERS]
+
+if mode_build_evaluation_form or mode_hide_talents or mode_copy_answers:
+	answers_role_sheet = get_answers_role_sheet(google_credentials)
+	answers_role_row = get_answers_role_row(answers_role_sheet)
 
 if mode in operations_by_mode_dictionary[OPERATION_BUILD_EVALUATION_FORM]:
 	auto_evaluation_sheet = get_auto_evaluation_sheet(google_credentials) if mode == EXCHANGE_EVALUATION else None
