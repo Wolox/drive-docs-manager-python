@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # Install pygsheets:
-# pip3 install git+git://github.com/nithinmurali/pygsheets@staging
-# Documentation for pygsheets: git+git://github.com/pablog/pygsheets@hide-worksheet-from-master
+# pip3 install git+git://github.com/nithinmurali/pygsheets@75594dc58a5a9671edea2283369bb190aac36fb3
 
 # Install readchar:
 # pip3 install readchar
@@ -630,13 +629,28 @@ def build_evaluation_form_in_single_worksheet(destiny_sheet, auto_evaluation_she
 	worksheet_destiny = destiny_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append)
 
 	# Get auto evaluation worksheet based on worksheet_name and date_to_append
-	auto_evaluation_worksheet = auto_evaluation_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append) if mode == EXCHANGE_EVALUATION else None
+	try:
+		auto_evaluation_worksheet = auto_evaluation_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append) if mode == EXCHANGE_EVALUATION else None
+	except pygsheets.exceptions.WorksheetNotFound:
+		print('Ausente tab: ' + worksheet_destiny.title + '. Ignorando copia de talentos.')
+		print('')
+		return
 
 	# Get manager evaluation worksheet based on worksheet_name and date_to_append
-	manager_evaluation_worksheet = manager_evaluation_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append) if mode == EXCHANGE_EVALUATION else None
+	try:
+		manager_evaluation_worksheet = manager_evaluation_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append) if mode == EXCHANGE_EVALUATION else None
+	except pygsheets.exceptions.WorksheetNotFound:
+		print('Ausente tab: ' + worksheet_destiny.title + '. Ignorando copia de talentos.')
+		print('')
+		return
 
 	# Get exchange evaluation worksheet based on worksheet_name and date_to_append
-	exchange_evaluation_worksheet = exchange_evaluation_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append) if mode == FIRST_EVALUATION else None
+	try:
+		exchange_evaluation_worksheet = exchange_evaluation_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append) if mode == FIRST_EVALUATION else None
+	except pygsheets.exceptions.WorksheetNotFound:
+		print('Ausente tab: ' + worksheet_destiny.title + '. Ignorando copia de talentos.')
+		print('')
+		return
 
 	# Cell from answers document with the selected talents. Info is separated by comma
 	answers_cell = answers_role_sheet.sheet1.cell(answers_role_column + answers_role_row).value.lower()
@@ -722,7 +736,7 @@ def hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, works
 		# If there is no value different than '1' in the row, then the talent must be hidden
 		if not True in list(map(lambda each: not each.value == '1', cells_with_values)):
 			print('Ocultando fila en: ' + brief_worksheet.title)
-			brief_worksheet.hide_rows(title_row_in_brief - 2, title_row_in_brief + 2)
+			brief_worksheet.hide_dimensions(title_row_in_brief - 2, title_row_in_brief + 2, dimension="ROWS")
 
 	# In case there are no talents chosen from this worksheet, no hiding/showing of talents is necessary
 	if not answers_cell:
@@ -737,10 +751,10 @@ def hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, works
 	worksheet_talents = list(map(lambda each: each.value[(len(each.value.split()[0]) + 1):], cells_with_titles))
 
 	# Show every row before hiding to avoid hiding every row if there were already hidden ones
-	worksheet_destiny.show_rows(0)
+	worksheet_destiny.show_dimensions(0, dimension="ROWS")
 
 	# Hide every row, and then show only the selected ones
-	worksheet_destiny.hide_rows(1, worksheet_destiny.rows - 1)
+	worksheet_destiny.hide_dimensions(1, worksheet_destiny.rows - 1, dimension="ROWS")
 
 	# Iterate over each of the titles that may appear in answers_role_sheet first sheet, showing from destiny those that are present in answers
 	for i, title in enumerate(worksheet_talents):
@@ -755,7 +769,7 @@ def hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, works
 		if should_show_by_match or should_show_by_exception_1 or should_show_by_exception_2 or should_show_by_exception_3 or should_show_by_exception_4:
 			show_from = list(filter(lambda each: each.value.startswith(worksheet_identifier + str(i + 1)), cells_with_titles))[0].row - 1
 			show_to = worksheet_destiny.rows if i + 1 == len(worksheet_talents) else list(filter(lambda each: each.value.startswith(worksheet_identifier + str(i + 2)), cells_with_titles))[0].row - 1
-			worksheet_destiny.show_rows(show_from, show_to)
+			worksheet_destiny.show_dimensions(show_from, show_to, dimension="ROWS")
 			print('Mostrando talento: ' + title)
 
 	print('')
