@@ -319,7 +319,7 @@ def get_mode():
 
 # If destiny sheet contains an evaluation for date to append, then the copy should not be re done
 def copy_should_be_omitted(destiny_sheet, date_to_append):
-	already_present = next((index for index, each in enumerate(destiny_sheet.worksheets()) if not 'RID' in each.title and each.title.endswith(date_to_append)), None) 
+	already_present = next((index for index, each in enumerate(destiny_sheet.worksheets()) if not 'RID' in each.title and each.title.endswith(date_to_append)), None)
 	if already_present:
 		print('')
 		print('Ya existe una evaluación para la instancia: \'' + date_to_append + '\'')
@@ -387,7 +387,7 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 		# Every worksheet is copied, in case it is already present in destiny_worksheet, it must be taken from there
 		found_destiny_worksheet = list(filter(lambda each: each.title.startswith(clean_title_to_search), destiny_last_evaluation_worksheets))
 		worksheet_to_copy = worksheet if not found_destiny_worksheet else found_destiny_worksheet[0]
-		
+
 		# In case 'Desarrollo' or 'Scrum Masters' is found in destiny_worksheet, it must be copied from template_worksheet since it may have updates
 		if worksheet.title.startswith('Desarrollo') or worksheet.title.startswith('Scrum Masters'):
 			worksheet_to_copy = worksheet
@@ -423,7 +423,7 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 
 	print('')
 	print('Copia de tabs finalizada!')
-	print('')	
+	print('')
 
 	print('Actualizando estado del documento.')
 
@@ -621,7 +621,7 @@ def build_evaluation_form(destiny_sheet, auto_evaluation_sheet, manager_evaluati
 	print('Copia de talentos finalizada!')
 	print('')
 
-# Copies evaluated talents from a sheet to destiny. 
+# Copies evaluated talents from a sheet to destiny.
 # In case mode is EXCHANGE_EVALUATION it uses auto_evaluation_sheet and manager_evaluation_sheet.
 # In case mode is FIRST_EVALUATION it uses exchange_evaluation_sheet.
 def build_evaluation_form_in_single_worksheet(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, exchange_evaluation_sheet, worksheet_name, worksheet_identifier, answers_role_sheet, answers_role_row, answers_role_column, date_to_append, talents_amount, mode):
@@ -682,7 +682,7 @@ def build_evaluation_form_in_single_worksheet(destiny_sheet, auto_evaluation_she
 			if mode == EXCHANGE_EVALUATION:
 				start_range_copy = 'G' + str(copy_from)
 				end_range_copy = 'I' + str(copy_to)
-				
+
 				range_auto_evaluation = 'G' + str(copy_from) + ':' + 'I' + str(copy_to)
 				talent_from_auto_evaluation = auto_evaluation_worksheet.get_values(start=start_range_copy, end=end_range_copy, majdim='COLUMNS')
 				worksheet_destiny.update_values(crange=range_auto_evaluation, values=talent_from_auto_evaluation, majordim='COLUMNS')
