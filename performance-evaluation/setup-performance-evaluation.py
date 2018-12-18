@@ -480,6 +480,17 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 		print('Actualizada instancia de evaluación en tab: ' + instance_worksheet.title)
 		print('')
 
+	# Update cell 'Impacto' check, in order to set it to TRUE in case last evaluation uses it.
+	# No need to check for RID since this tab is not present in this mode.
+	if mode in template_auxiliar_dictionary['Desempeño']:
+		leaders_worksheet = destiny_sheet.worksheet_by_title('Líderes' + ' ' + date_to_append)
+		impact_cell_has_value = bool(leaders_worksheet.cell('G55').value.strip())
+		instance_worksheet = destiny_sheet.worksheet_by_title('Desempeño' + ' ' + date_to_append)
+		print('Actualizando check de Impacto en tab: ' + instance_worksheet.title)
+		instance_worksheet.update_value('I27', 'TRUE' if impact_cell_has_value else 'FALSE')
+		print('Actualizada check de Impacto en tab: ' + instance_worksheet.title)
+		print('')
+
 	# Update talent cells 'Desarrollo' since it may have changes
 	# Current one may be RID or not. Previous one has to be last evaluation but not RID
 	current_development_worksheet_title = 'Desarrollo' if not mode == RID_EVALUATION else 'Desarrollo' + ' ' + 'RID' + ' ' + rid_instance_to_append
