@@ -71,18 +71,19 @@ operations_by_mode_dictionary = {
 # (talent_identifier, columnt for talent in answers_role_sheet, row for talent in 'Desempeño', row in tab for title talents)
 template_talents_dictionary = {
 	'Universales': 					('U',	'J',	28,		[2, 12, 23, 35, 45, 56, 67, 78, 88, 99]),
-	'Administración y Finanzas': 	('AF',	'L',	52,		[2, 12, 22]),
-	'Business Dev': 				('BD',	'M',	68,		[2, 12, 22, 32, 42, 52]),
-	'Calidad': 						('C',	'P',	72,		[2, 12, 22, 32, 42]),
+	'Administración y Finanzas': 	('AF',	'L',	56,		[2, 12, 22]),
+	'Business Dev': 				('BD',	'M',	72,		[2, 12, 22, 32, 42, 52]),
+	'Calidad': 						('C',	'P',	76,		[2, 12, 22, 32, 42]),
 	'Desarrollo': 					('Dev',	'K',	32,		[2, 11, 19, 27, 35]),
 	'Diseño': 						('Dis',	'N',	36,		[2, 10, 19, 28, 38]),
-	'QA': 							('QA',	'O',	56,		[2, 12, 23, 31, 41]),
-	'Referentes Técnicos': 			('RT',	'R',	76,		[2, 9]),
-	'Líderes':						('Lid',	'U',	40,		[2, 11, 21, 31, 41, 51, 61]),
-	'Marketing':					('M',	'V',	44,		[2, 11, 21, 31, 41]),
-	'Scrum Masters':				('SM',	'S',	64,		[2, 11, 21]),
-	'People Care':					('PC',	'Q',	48,		[2, 13, 24, 35, 44]),
-	'Team Managers':				('TM',	'T',	60,		[2, 12])
+	'PT': 							('PT',	'X',	40,		[2, 12, 22, 31, 40]),
+	'QA': 							('QA',	'O',	60,		[2, 12, 23, 31, 41]),
+	'Referentes Técnicos': 			('RT',	'R',	80,		[2, 9]),
+	'Líderes':						('Lid',	'U',	44,		[2, 11, 21, 31, 41, 51, 61]),
+	'Marketing':					('M',	'V',	48,		[2, 11, 21, 31, 41]),
+	'Scrum Masters':				('SM',	'S',	68,		[2, 11, 21]),
+	'People Care':					('PC',	'Q',	52,		[2, 13, 24, 35, 44]),
+	'Team Managers':				('TM',	'T',	64,		[2, 12])
 }
 
 # This is a matching between the auxiliar tabs and an array including the modes in which each tab is included
@@ -467,7 +468,7 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 	if mode in template_auxiliar_dictionary['Desempeño Evaluadores']:
 		instance_worksheet = destiny_sheet.worksheet_by_title('Desempeño Evaluadores' + ' ' + date_to_append)
 		print('Actualizando instancia de evaluación en tab: ' + instance_worksheet.title)
-		instance_worksheet.update_value('A22', date_to_append)
+		instance_worksheet.update_value('F21', date_to_append)
 		print('Actualizada instancia de evaluación en tab: ' + instance_worksheet.title)
 		print('')
 
@@ -487,7 +488,7 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 		impact_cell_has_value = bool(leaders_worksheet.cell('G55').value.strip())
 		instance_worksheet = destiny_sheet.worksheet_by_title('Desempeño' + ' ' + date_to_append)
 		print('Actualizando check de Impacto en tab: ' + instance_worksheet.title)
-		instance_worksheet.update_value('I27', 'TRUE' if impact_cell_has_value else 'FALSE')
+		instance_worksheet.update_value('J27', 'TRUE' if impact_cell_has_value else 'FALSE')
 		print('Actualizada check de Impacto en tab: ' + instance_worksheet.title)
 		print('')
 
