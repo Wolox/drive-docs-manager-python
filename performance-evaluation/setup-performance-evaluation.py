@@ -71,19 +71,19 @@ operations_by_mode_dictionary = {
 # (talent_identifier, columnt for talent in answers_role_sheet, row for talent in 'Desempeño', row in tab for title talents)
 template_talents_dictionary = {
 	'Universales': 					('U',	'J',	28,		[2, 12, 23, 35, 45, 56, 67, 78, 88, 99]),
-	'Administración y Finanzas': 	('AF',	'L',	56,		[2, 12, 22]),
-	'Business Dev': 				('BD',	'M',	72,		[2, 12, 22, 32, 42, 52]),
-	'Calidad': 						('C',	'P',	76,		[2, 12, 22, 32, 42]),
+	'Administración y Finanzas': 	('AF',	'O',	56,		[2, 12, 22]),
+	'Business Dev': 				('BD',	'Q',	72,		[2, 12, 22, 32, 42, 52]),
+	'Calidad': 						('C',	'T',	76,		[2, 12, 22, 32, 42]),
 	'Desarrollo': 					('Dev',	'K',	32,		[2, 11, 19, 27, 35]),
-	'Diseño': 						('Dis',	'N',	36,		[2, 10, 19, 28, 38]),
-	'PT': 							('PT',	'X',	40,		[2, 12, 22, 31, 40]),
-	'QA': 							('QA',	'O',	60,		[2, 12, 23, 31, 41]),
-	'Referentes Técnicos': 			('RT',	'R',	80,		[2, 9]),
-	'Líderes':						('Lid',	'U',	44,		[2, 11, 21, 31, 41, 51, 61]),
-	'Marketing':					('M',	'V',	48,		[2, 11, 21, 31, 41]),
-	'Scrum Masters':				('SM',	'S',	68,		[2, 11, 21]),
-	'People Care':					('PC',	'Q',	52,		[2, 13, 24, 35, 44]),
-	'Team Managers':				('TM',	'T',	64,		[2, 12])
+	'Diseño': 						('Dis',	'R',	36,		[2, 10, 19, 28, 38]),
+	'PT': 							('PT',	'S',	40,		[2, 12, 22, 31, 40]),
+	'QA': 							('QA',	'V',	60,		[2, 12, 23, 31, 41]),
+	'Referentes Técnicos': 			('RT',	'L',	80,		[2, 9]),
+	'Líderes':						('Lid',	'W',	44,		[2, 11, 21, 31, 41, 51, 61]),
+	'Marketing':					('M',	'P',	48,		[2, 11, 21, 31, 41]),
+	'Scrum Masters':				('SM',	'M',	68,		[2, 11, 21]),
+	'People Care':					('PC',	'U',	52,		[2, 13, 24, 35, 44]),
+	'Team Managers':				('TM',	'N',	64,		[2, 12])
 }
 
 # This is a matching between the auxiliar tabs and an array including the modes in which each tab is included
@@ -794,8 +794,8 @@ def copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_
 		print('')
 		return
 
-	# Get worksheet with name 'Respuestas de formulario 1' from answers_role_sheet
-	answers_worksheet = answers_role_sheet.worksheet_by_title('Respuestas de formulario 1')
+	# Answers sheet from 'Rol Laboral'.
+	answers_worksheet = answers_role_sheet.sheet1
 
 	# Get worksheet destiny based on name 'Satisfacción Laboral' and date_to_append
 	destiny_worksheet = destiny_sheet.worksheet_by_title('Satisfacción Laboral' + ' ' + date_to_append)
@@ -805,7 +805,7 @@ def copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_
 
 	matching_dictionary = {
 		# Question: "¿En qué grado te sentís satisfecho/a con tu rol laboral actual?"
-		'D' + answers_role_row: ('B9', 'B10'),
+		'E' + answers_role_row: ('B9', 'B10'),
 		# Question: "¿Por qué lo calificarías así?"
 		'F' + answers_role_row: ('B12', 'B13'),
 		# Question: ¿Qué otros aprendizajes te gustaría poder realizar en el transcurso de los próximos 6 meses?"
