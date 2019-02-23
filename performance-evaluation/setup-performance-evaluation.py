@@ -481,17 +481,6 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 		print('Actualizada instancia de evaluación en tab: ' + instance_worksheet.title)
 		print('')
 
-	# Update cell 'Impacto' check, in order to set it to TRUE in case last evaluation uses it.
-	# No need to check for RID since this tab is not present in this mode.
-	if mode in template_auxiliar_dictionary['Desempeño']:
-		leaders_worksheet = destiny_sheet.worksheet_by_title('Líderes' + ' ' + date_to_append)
-		impact_cell_has_value = bool(leaders_worksheet.cell('G55').value.strip())
-		instance_worksheet = destiny_sheet.worksheet_by_title('Desempeño' + ' ' + date_to_append)
-		print('Actualizando check de Impacto en tab: ' + instance_worksheet.title)
-		instance_worksheet.update_value('J27', 'TRUE' if impact_cell_has_value else 'FALSE')
-		print('Actualizada check de Impacto en tab: ' + instance_worksheet.title)
-		print('')
-
 	# Update talent cells 'Desarrollo' since it may have changes
 	# Current one may be RID or not. Previous one has to be last evaluation but not RID
 	current_development_worksheet_title = 'Desarrollo' if not mode == RID_EVALUATION else 'Desarrollo' + ' ' + 'RID' + ' ' + rid_instance_to_append
@@ -827,6 +816,45 @@ def copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_
 	print('Copia de respuestas finalizada!')
 	print('')
 
+def check_specific_talents(destiny_sheet, answers_role_sheet, answers_role_row, mode):
+
+	# Update checks in 'Desempeño' tab in order to read the proper specific talent.
+	# No need to check for RID since this tab is not present in this mode.
+	performance_tabs_to_update = ['Desempeño Evaluadores', 'Desempeño', 'Desempeño Intercambio']
+
+	for each in performance_tabs_to_update:
+		if mode in template_auxiliar_dictionary[each]:
+			instance_worksheet = destiny_sheet.worksheet_by_title(each + ' ' + date_to_append)
+
+			# Update cell 'Impacto' check, in order to set it to TRUE in case last evaluation uses it.
+			leaders_worksheet = destiny_sheet.worksheet_by_title('Líderes' + ' ' + date_to_append)
+			impact_cell_has_value = bool(leaders_worksheet.cell('G55').value.strip())
+			print('Actualizando check de Impacto en tab: ' + instance_worksheet.title)
+			instance_worksheet.update_value('J27', 'TRUE' if impact_cell_has_value else 'FALSE')
+			print('Actualizada check de Impacto en tab: ' + instance_worksheet.title)
+			print('')
+
+			development_talents_chosen_cell = template_talents_dictionary['Desarrollo'][1] + answers_role_row
+			development_talents_chosen = bool(answers_role_sheet.sheet1.cell(development_talents_chosen_cell).value.strip())
+			print('Actualizando check de Desarrollo en tab: ' + instance_worksheet.title)
+			instance_worksheet.update_value('G27', 'TRUE' if development_talents_chosen else 'FALSE')
+			print('Actualizada check de Desarrollo en tab: ' + instance_worksheet.title)
+			print('')
+
+			design_talents_chosen_cell = template_talents_dictionary['Diseño'][1] + answers_role_row
+			design_talents_chosen = bool(answers_role_sheet.sheet1.cell(design_talents_chosen_cell).value.strip())
+			print('Actualizando check de Diseño en tab: ' + instance_worksheet.title)
+			instance_worksheet.update_value('H27', 'TRUE' if design_talents_chosen else 'FALSE')
+			print('Actualizada check de Diseño en tab: ' + instance_worksheet.title)
+			print('')
+
+			product_thinking_talents_chosen_cell = template_talents_dictionary['PT'][1] + answers_role_row
+			product_thinking_talents_chosen = bool(answers_role_sheet.sheet1.cell(product_thinking_talents_chosen_cell).value.strip())
+			print('Actualizando check de PT en tab: ' + instance_worksheet.title)
+			instance_worksheet.update_value('I27', 'TRUE' if product_thinking_talents_chosen else 'FALSE')
+			print('Actualizada check de PT en tab: ' + instance_worksheet.title)
+			print('')
+
 # Script
 
 google_credentials = get_google_credentials()
@@ -866,5 +894,7 @@ if mode in operations_by_mode_dictionary[OPERATION_COPY_ANSWERS]:
 if mode in operations_by_mode_dictionary[OPERATION_COPY_FEEDBACK]:
 	feedback_sheet = get_feedback_sheet(google_credentials)
 	copy_feedback(destiny_sheet, feedback_sheet, date_to_append)
+
+check_specific_talents(destiny_sheet, answers_role_sheet, answers_role_row, mode)
 
 on_finish()
