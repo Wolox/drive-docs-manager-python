@@ -1,21 +1,5 @@
 # -*- coding: utf-8 -*-
 
-# Install pygsheets:
-# pip3 install git+git://github.com/nithinmurali/pygsheets@75594dc58a5a9671edea2283369bb190aac36fb3
-
-# Install readchar:
-# pip3 install readchar
-# Documentation for readchar: https://github.com/magmax/python-readchar
-
-# For error "ImportError: No module named oauth2client.file"
-# Then do: pip3 install --upgrade oauth2client
-
-# Follow this to create credentials:
-# https://pygsheets.readthedocs.io/en/latest/authorizing.html
-
-# Quick access to my provisional credentials:
-# https://console.developers.google.com/apis/dashboard?folder=&organizationId=22904326237&project=peoplecare-automation
-
 import pygsheets
 import readchar
 import time
