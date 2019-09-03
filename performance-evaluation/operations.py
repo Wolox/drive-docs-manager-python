@@ -167,12 +167,12 @@ def build_evaluation_form(destiny_sheet, auto_evaluation_sheet, manager_evaluati
 	print('')
 
 # Hide talents in destiny_sheet by reading the chosen ones from answers_role_sheet in answers_role_row
-def hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append):
+def hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode):
 	print('Ocultando talentos no seleccionados...')
 	print('')
 
 	for key, value in template_talents_dictionary.items():
-		_hide_unused_talents_in_single_worksheet(destiny_sheet, key, value[0], answers_role_sheet, answers_role_row, value[1], date_to_append, value[2], len(value[3]))
+		_hide_unused_talents_in_single_worksheet(destiny_sheet, key, value[0], answers_role_sheet, answers_role_row, value[1], date_to_append, value[2], len(value[3]), mode)
 
 	print('Ocultamiento de talentos finalizado!')
 	print('')
@@ -324,7 +324,7 @@ def copy_talents_for_scrum_masters(current_worksheet, previous_worksheet):
 	print('Actualizada tab: ' + current_worksheet.title)
 	print('')
 
-def _hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, worksheet_identifier, answers_role_sheet, answers_role_row, answers_role_column, date_to_append, title_row_in_brief, talents_amount):
+def _hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, worksheet_identifier, answers_role_sheet, answers_role_row, answers_role_column, date_to_append, title_row_in_brief, talents_amount, mode):
 	# Get worksheet destiny based on worksheet_name and date_to_append
 	worksheet_destiny = destiny_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append)
 

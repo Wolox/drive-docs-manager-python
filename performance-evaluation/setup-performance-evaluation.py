@@ -214,7 +214,7 @@ if mode in operations_by_mode_dictionary[OPERATION_BUILD_EVALUATION_FORM]:
 	wait_for_quota_renewal()
 
 if mode in operations_by_mode_dictionary[OPERATION_HIDE_TALENTS]:
-	hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append)
+	hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
 
 if mode in operations_by_mode_dictionary[OPERATION_COPY_ANSWERS]:
 	copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from constants import *
 import pygsheets
+import readchar
 
 
 # Checks the last updated timestamp por template. In case it was modified, script code may have to be adapted
