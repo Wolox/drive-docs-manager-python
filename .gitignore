@@ -3,3 +3,7 @@ performance-evaluation/client_secret.json
 
 # Ignore token file
 performance-evaluation/sheets.googleapis.com-python.json
+
+# Pyc
+__pycache__
+*.pyc
