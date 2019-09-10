@@ -1,13 +1,12 @@
 # -*- coding: utf-8 -*-
-
-import pygsheets
 import readchar
 import time
 
 from constants import *
-from google_sheets import validate_updated_timestamp, get_google_credentials, get_template_sheets, \
-	get_destiny_sheet, get_auto_evaluation_sheet, get_manager_evaluation_sheet, \
+from google_sheets import create_sheet, get_google_credentials, \
+	get_template_sheets, get_destiny_sheet, get_auto_evaluation_sheet, get_manager_evaluation_sheet, \
 	get_exchange_evaluation_sheet, get_feedback_sheet, get_answers_role_sheet
+from google_drive import get_key_by_path
 from operations import copy_tabs, build_evaluation_form, hide_unused_talents, copy_answers_role, copy_feedback
 
 # Ask for the row number in answers role sheet
@@ -65,6 +64,37 @@ def is_valid_date_to_append(date_to_append):
 	if not date_to_append[3:].isnumeric():
 		return False
 	return True
+
+def is_valid_title(title):
+	if title is None:
+		return False
+	if title == '':
+		return False
+	return True
+
+# Ask for full name to append in evaluation as title
+def get_title():
+	while True:
+		title = input('Ingresar el título del nuevo documento. Ejemplo: \'Salas, Julián - Formulario de evaluación\': ')
+		if not is_valid_title(title):
+			print('El valor ingresado \'' + title + '\' no es válido. Revisar y volver a intentar.')
+			continue
+
+		print('Título ingresado: \'' + title + '\'')
+		print('Es correcto? Presione \'s/n\'.')
+		if readchar.readchar() == 's':
+			print('Título confirmado...')
+			print('')
+			return title
+
+def get_data(google_credentials):
+	print('A continuación te vamos a pedir los siguientes datos:')
+	print(' - Instancia de la evaluación')
+	print(' - Título del documento. En caso de no generar ninguno, no se utilizará')
+	print('')
+	date_to_append = get_date_to_append()
+	title = get_title()
+	return (date_to_append, title)
 
 # Ask for mode to run the script
 def get_mode():
@@ -184,19 +214,10 @@ def check_specific_talents(destiny_sheet, answers_role_sheet, answers_role_row, 
 			print('')
 
 # Script
-
 google_credentials = get_google_credentials()
 (template_auxiliar_sheet, template_talent_sheet) = get_template_sheets(google_credentials)
+(date_to_append, title) = get_data(google_credentials)
 mode = get_mode()
-destiny_sheet = get_destiny_sheet(google_credentials)
-date_to_append = get_date_to_append()
-rid_instance_to_append = get_rid_instance_to_append() if mode == RID_EVALUATION else None
-
-if mode in operations_by_mode_dictionary[OPERATION_COPY_TABS]:
-	if not copy_should_be_omitted(destiny_sheet, date_to_append):
-		copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, date_to_append, rid_instance_to_append, mode)
-		if not mode == RID_EVALUATION:
-			wait_for_quota_renewal()
 
 mode_build_evaluation_form = mode in operations_by_mode_dictionary[OPERATION_BUILD_EVALUATION_FORM]
 mode_hide_talents = mode in operations_by_mode_dictionary[OPERATION_HIDE_TALENTS]
@@ -206,12 +227,31 @@ if mode_build_evaluation_form or mode_hide_talents or mode_copy_answers:
 	answers_role_sheet = get_answers_role_sheet(google_credentials)
 	answers_role_row = get_answers_role_row(answers_role_sheet)
 
+if not folders_dictionary[mode]['need_child_key']:
+	if not folders_dictionary[mode]['parent_key']:
+		key = get_key_by_path(folders_dictionary[mode]['parent_path'])
+	else:
+		key = folders_dictionary[mode]['parent_key']
+	destiny_sheet = create_sheet(google_credentials, title, key)
+else:
+	parent_key = get_key_by_path(folders_dictionary[mode]['parent_path'])
+	key = get_key_by_path(parent_key)
+	destiny_sheet = get_destiny_sheet(google_credentials, key)
+
+rid_instance_to_append = get_rid_instance_to_append() if mode == RID_EVALUATION else None
+
 if mode in operations_by_mode_dictionary[OPERATION_BUILD_EVALUATION_FORM]:
 	auto_evaluation_sheet = get_auto_evaluation_sheet(google_credentials) if mode == EXCHANGE_EVALUATION else None
 	manager_evaluation_sheet = get_manager_evaluation_sheet(google_credentials) if mode == EXCHANGE_EVALUATION else None
 	exchange_evaluation_sheet = get_exchange_evaluation_sheet(google_credentials) if mode == FIRST_EVALUATION else None
 	build_evaluation_form(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, exchange_evaluation_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
 	wait_for_quota_renewal()
+
+if mode in operations_by_mode_dictionary[OPERATION_COPY_TABS]:
+	if not copy_should_be_omitted(destiny_sheet, date_to_append):
+		copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, date_to_append, rid_instance_to_append, mode)
+		if not mode == RID_EVALUATION:
+			wait_for_quota_renewal()
 
 if mode in operations_by_mode_dictionary[OPERATION_HIDE_TALENTS]:
 	hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
@@ -223,6 +263,6 @@ if mode in operations_by_mode_dictionary[OPERATION_COPY_FEEDBACK]:
 	feedback_sheet = get_feedback_sheet(google_credentials)
 	copy_feedback(destiny_sheet, feedback_sheet, date_to_append)
 
-check_specific_talents(destiny_sheet, answers_role_sheet, answers_role_row, mode)
+check_specific_talents(destiny_sheet, answers_role_sheet, answers_role_row, mode) if mode != RID_EVALUATION else None
 
 on_finish()
