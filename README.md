@@ -8,6 +8,9 @@ This script was designed to (parcially) automize the performance evaluation proc
 ### Installing pygsheets
 ```pip3 install git+git://github.com/nithinmurali/pygsheets@75594dc58a5a9671edea2283369bb190aac36fb3```
 
+### Installing pydrive
+```pip3 install pydrive```
+
 ### Installing readchar
 ```pip3 install readchar```
 
@@ -21,16 +24,27 @@ To solve this, install the version 0.3.0
 ### For error "ImportError: No module named oauth2client.file"
 `pip3 install --upgrade oauth2client`
 
+### Installing Percol
+```pip3 install Percol```
+
 ## Documentation
 
 ### Readchar
 > Documentation for readchar: https://github.com/magmax/python-readchar
 
-### To create credentials
+### Percol
+> Documentation for percol: https://github.com/mooz/percol
+
+### PyDrive
+> Documentation for PyDrive: https://pythonhosted.org/PyDrive/
+
+### To create credentials in pygsheets
 > https://pygsheets.readthedocs.io/en/stable/authorization.html
 
-### Quick access to my provisional credentials:
-> https://console.developers.google.com/apis/dashboard?folder=&organizationId=22904326237&project=peoplecare-automation
+### To create credentials in pydrive
+> https://pythonhosted.org/PyDrive/quickstart.html
+
+You have to download the credentials.json logging with gauth.LocalWebserverAuth()
 
 ## About
 
