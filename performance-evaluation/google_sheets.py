@@ -6,8 +6,7 @@ import readchar
 
 def create_sheet(google_credentials, title, folder_key):
     print('Creando nuevo sheet...')
-    sheet = google_credentials.create(
-        title + ' - ', template=None, folder=folder_key)
+    sheet = google_credentials.create(title, template=None, folder=folder_key)
     print('Sheet ' + title + ' creada satisfactoriamente.\n')
     return sheet
 

@@ -65,18 +65,11 @@ def is_valid_date_to_append(date_to_append):
 		return False
 	return True
 
-def is_valid_title(title):
-	if title is None:
-		return False
-	if title == '':
-		return False
-	return True
-
 # Ask for title to create the document
 def get_title():
 	while True:
 		title = input('Ingresar el título del nuevo documento. Ejemplo: \'Salas, Julián - Formulario de evaluación\': ')
-		if not is_valid_title(title):
+		if not title:
 			print('El valor ingresado \'' + title + '\' no es válido. Revisar y volver a intentar.')
 			continue
 

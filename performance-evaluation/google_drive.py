@@ -14,7 +14,7 @@ def select_from_list(list):
         p.loop()
     selected_element = p.model_candidate.get_selected_result()
     result = [element for element in list if element[0] == selected_element]
-    return result
+    return result[0]
 
 # Authenticate in Google
 def google_authentication():
@@ -27,11 +27,6 @@ def google_authentication():
         gauth.LoadCredentialsFile(GDRIVE_FILE_NAME)
         gauth.Authorize()
         gauth.SaveCredentialsFile(GDRIVE_FILE_NAME)
-    drive = drive_authentication(gauth)
-    return drive
-
-# Authenticate in Google Drive
-def drive_authentication(gauth):
     drive = GoogleDrive(gauth)
     return drive
 
@@ -45,9 +40,9 @@ def get_key_by_path(key):
         folders.append((file1['title'], file1['id']))
     while True:
         results = select_from_list(folders)
-        print('\nElegiste: ' + results[0][0] + '.\nEs correcto? Presione \'s/n\'.')
-        if readchar.readchar() == 's' and results[0][1]:
-            return results[0][1]
+        print('\nElegiste: ' + results[0] + '.\nEs correcto? Presione \'s/n\'.')
+        if readchar.readchar() == 's' and results[1]:
+            return results[1]
         else:
             print('Ejecución finalizada.')
             exit()
