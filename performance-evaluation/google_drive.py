@@ -4,20 +4,19 @@ from pydrive.drive import GoogleDrive
 from percol import Percol
 import readchar
 
-
-def select_from_list(folders):
-    si, so, se = "", "", ""
-    candd = [p[0] for p in folders]
+# Select an option from an interactive list made with Percol
+def select_from_list(list):
+    candidates = [element[0] for element in list]
     with Percol(
             actions=[],
-            descriptors={'stdin': si, 'stdout': so, 'stderr': se},
-            candidates=iter(candd)) as p:
+            descriptors={'stdin': "", 'stdout': "", 'stderr': ""},
+            candidates=iter(candidates)) as p:
         p.loop()
-    results = p.model_candidate.get_selected_result()
-    ret = [pp for pp in folders if pp[0] == results]
-    return ret
+    selected_element = p.model_candidate.get_selected_result()
+    result = [element for element in list if element[0] == selected_element]
+    return result
 
-
+# Authenticate in Google
 def google_authentication():
     gauth = GoogleAuth()
     if gauth.credentials is None:
@@ -31,11 +30,12 @@ def google_authentication():
     drive = drive_authentication(gauth)
     return drive
 
-
+# Authenticate in Google Drive
 def drive_authentication(gauth):
     drive = GoogleDrive(gauth)
     return drive
 
+# Return the key from the element who want to search in Google Drive
 def get_key_by_path(key):
     drive = google_authentication()
     folders = [('No lo encuentro', False)]

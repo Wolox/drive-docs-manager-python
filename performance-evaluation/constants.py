@@ -52,12 +52,12 @@ operations_by_mode_dictionary = {
 
 folders_dictionary = {
     NEXT_EVALUATION: {
-		'need_child_key': True,
+        'need_child_key': True,
         'parent_key': False,
-		'parent_path': PERFORMANCE_REPORT_FOLDER_KEY
+        'parent_path': PERFORMANCE_REPORT_FOLDER_KEY
     },
     AUTO_EVALUATION: {
-		'need_child_key': False,
+        'need_child_key': False,
         'parent_key': AUTO_EVALUATION_FOLDER_KEY,
         'parent_path': PERFORMANCE_STUDY_FOLDER_KEY
     },
