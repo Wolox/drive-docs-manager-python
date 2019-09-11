@@ -39,8 +39,7 @@ def get_destiny_sheet(google_credentials, key):
 # Ask for the document to read the auto evaluation
 def get_auto_evaluation_sheet(google_credentials):
     while True:
-        destiny_file_key = input(
-            'Ingresar la key del documento de auto evaluación: ')
+        destiny_file_key = input('Ingresar la key del documento de auto evaluación: ')
         try:
             destiny_sheet = google_credentials.open_by_key(destiny_file_key)
             print('Se va a utilizar el documento de auto evaluación con el nombre: \'' + destiny_sheet.title + '\'')
@@ -55,8 +54,7 @@ def get_auto_evaluation_sheet(google_credentials):
 # Ask for the document to read the evaluation
 def get_manager_evaluation_sheet(google_credentials):
     while True:
-        destiny_file_key = input(
-            'Ingresar la key del documento de evaluación: ')
+        destiny_file_key = input('Ingresar la key del documento de evaluación: ')
         try:
             destiny_sheet = google_credentials.open_by_key(destiny_file_key)
             print('Se va a utilizar el documento de evaluación con el nombre: \'' + destiny_sheet.title + '\'')
@@ -70,8 +68,7 @@ def get_manager_evaluation_sheet(google_credentials):
 # Ask for the document to read the exchange evaluation
 def get_exchange_evaluation_sheet(google_credentials):
     while True:
-        destiny_file_key = input(
-            'Ingresar la key del documento de evaluación de intercambio: ')
+        destiny_file_key = input('Ingresar la key del documento de evaluación de intercambio: ')
         try:
             destiny_sheet = google_credentials.open_by_key(destiny_file_key)
             print('Se va a utilizar el documento de evaluación de intercambio con el nombre: \'' +
