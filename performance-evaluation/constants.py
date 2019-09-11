@@ -67,17 +67,17 @@ folders_dictionary = {
         'parent_path': PERFORMANCE_STUDY_FOLDER_KEY
     },
     EXCHANGE_EVALUATION: {
-		'need_child_key': False,
+        'need_child_key': False,
         'parent_key': EXCHANGE_EVALUATION_FOLDER_KEY,
         'parent_path': PERFORMANCE_STUDY_FOLDER_KEY
     },
     FIRST_EVALUATION: {
-		'need_child_key': False,
+        'need_child_key': False,
         'parent_key': False,
         'parent_path': PERFORMANCE_REPORT_FOLDER_KEY
     },
     RID_EVALUATION: {
-		'need_child_key': False,
+        'need_child_key': False,
         'parent_key': RID_EVALUATION_FOLDER_KEY,
         'parent_path': PERFORMANCE_STUDY_FOLDER_KEY
     }
