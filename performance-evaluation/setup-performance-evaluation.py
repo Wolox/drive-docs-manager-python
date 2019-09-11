@@ -72,7 +72,7 @@ def is_valid_title(title):
 		return False
 	return True
 
-# Ask for full name to append in evaluation as title
+# Ask for title to create the document
 def get_title():
 	while True:
 		title = input('Ingresar el título del nuevo documento. Ejemplo: \'Salas, Julián - Formulario de evaluación\': ')
