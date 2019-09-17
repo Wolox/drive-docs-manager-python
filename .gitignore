@@ -1,5 +1,6 @@
 # Ignore credentials file
 performance-evaluation/client_secret.json
+performance-evaluation/credentials.json
 
 # Ignore token file
 performance-evaluation/sheets.googleapis.com-python.json
