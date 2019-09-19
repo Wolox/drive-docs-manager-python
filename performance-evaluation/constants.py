@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+google_credentials = 0
+
 # Mode for running script for ever evaluation after the first one.
 NEXT_EVALUATION = "NEXT_EVALUATION"
 # Mode for creating a RID evaluation.
