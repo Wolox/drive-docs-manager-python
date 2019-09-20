@@ -6,27 +6,27 @@ import readchar
 
 
 def create_sheet(title, folder_key):
+    """With a given title and a key from a folder, create a Google Sheet in Drive"""
     print('Creando nuevo sheet...')
     sheet = google_credentials.create(title, template=None, folder=folder_key)
     print('Sheet ' + title + ' creada satisfactoriamente.\n')
     return sheet
 
-# Authenticate using OAuth from a given credentials file path and return credentials
 def set_google_credentials():
+    """Authenticate using OAuth from a given credentials file path and return credentials"""
     print('Autenticando...')
     global google_credentials
     google_credentials = pygsheets.authorize(GSHEETS_FILE_NAME)
     print('Autenticación exitosa!\n')
 
-# Open sheets
 def get_sheet_by_key(key):
-    print('Abriendo documento...\n')
+    """Given a key, open the element"""
     sheet = google_credentials.open_by_key(key)
     print('Documento ' + sheet.title + ' abierto.\n')
     return sheet
 
-# Ask for the document to read the feedback
 def get_feedback_sheet():
+    """Ask for the document to read the feedback"""
     while True:
         feedback_file_key = input(
             'Ingresar la key del documento de feedback: ')
@@ -42,23 +42,23 @@ def get_feedback_sheet():
             print('El valor ingresado \'' + feedback_file_key +
                   '\' no es válido. Revisar y volver a intentar.\n')
 
-# Open and return the answers role sheet
 def get_answers_role_sheet():
+    """Open and return the answers role sheet"""
     print('Abriendo documento de respuestas de formulario para comenzar la copia...\n')
     answers_role_sheet = google_credentials.open_by_key(ANSWERS_ROLE_FILE_KEY)
     return answers_role_sheet
 
-# Ask for the row number in answers role sheet
 def get_answers_role_row(answers_role_sheet):
-	while True:
-		answers_row_index = input('Ingresar número de fila correspondiente a la evaluación: ')
-		try:
-			print('Se van a copiar las respuestas para: \'' + answers_role_sheet.sheet1.cell('C' + answers_row_index).value + '\'')
-			print('Es correcto? Presione \'s/n\'.')
-			if readchar.readchar() == 's':
-				print('Leyendo respuestas...')
-				print('')
-				return answers_row_index
-		except:
-			print('El valor ingresado \'' + answers_row_index + '\' no es válido. Revisar y volver a intentar.')
-			print('')
+    """Ask for the row number in answers role sheet"""
+    while True:
+        answers_row_index = input('Ingresar número de fila correspondiente a la evaluación: ')
+        try:
+            print('Se van a copiar las respuestas para: \'' + answers_role_sheet.sheet1.cell('C' + answers_row_index).value + '\'')
+            print('Es correcto? Presione \'s/n\'.')
+            if readchar.readchar() == 's':
+                print('Leyendo respuestas...')
+                print('')
+                return answers_row_index
+        except:
+            print('El valor ingresado \'' + answers_row_index + '\' no es válido. Revisar y volver a intentar.')
+            print('')
