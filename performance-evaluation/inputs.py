@@ -1,19 +1,10 @@
 import readchar
-
 from constants import NEXT_EVALUATION, RID_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, \
-	EXCHANGE_EVALUATION, FIRST_EVALUATION, UPDATE_FEEDBACK, TEMPLATE_AUXILIAR_FILE_KEY, \
-	TEMPLATE_TALENT_FILE_KEY, OPERATION_COPY_TABS, OPERATION_BUILD_EVALUATION_FORM, \
-	OPERATION_HIDE_TALENTS, OPERATION_COPY_ANSWERS, OPERATION_COPY_FEEDBACK, \
-	OPERATION_CREATE_SHEET, operations_by_mode_dictionary, folders_dictionary, template_talents_dictionary, \
-	template_auxiliar_dictionary
-from google_sheets import set_google_credentials, create_sheet, get_sheet_by_key, \
-	get_feedback_sheet, get_answers_role_sheet, get_answers_role_row
-from google_drive import get_key_by_path
-from operations import copy_tabs, build_evaluation_form, hide_unused_talents, copy_answers_role, copy_feedback
+	EXCHANGE_EVALUATION, FIRST_EVALUATION, UPDATE_FEEDBACK
 from validations import is_valid_date_to_append
 
-# Ask for date to append as evaluation instance
 def get_date_to_append():
+	"""Ask for date to append as evaluation instance"""
 	while True:
 		date_to_append = input('Ingresar instancia de evaluación. Ejemplo: \'1/18\': ')
 		if not is_valid_date_to_append(date_to_append):
@@ -27,10 +18,10 @@ def get_date_to_append():
 			print('')
 			return date_to_append
 
-# Ask for title to create the document
 def get_title():
+	"""Ask for title to create the document or folder"""
 	while True:
-		title = input('Ingresar el título del nuevo documento. Ejemplo: \'Salas, Julián - Formulario de evaluación\': ')
+		title = input('Ingrese el título:')
 		if not title:
 			print('El valor ingresado \'' + title + '\' no es válido. Revisar y volver a intentar.')
 			continue
@@ -42,8 +33,8 @@ def get_title():
 			print('')
 			return title
 
-# Ask for mode to run the script
 def get_mode():
+	"""Ask for mode to run the script"""
 	mode_next_evaluation = '1- Preparar informe de desempeño individual'
 	mode_auto_evaluation = '2- Preparar formulario de autoevaluación'
 	mode_manager_evaluation = '3- Preparar formulario de evaluación para evaluador'
@@ -92,8 +83,8 @@ def get_mode():
 			print('')
 			return mode
 
-# Ask for RID instance to append
 def get_rid_instance_to_append():
+	"""Ask for RID instance to append"""
 	while True:
 		rid_instance_to_append = input('Ingresar instancia de RID. Ejemplo: \'1\': ')
 		if not rid_instance_to_append.isnumeric() or int(rid_instance_to_append) < 1 or int(rid_instance_to_append) > 9:
@@ -106,3 +97,18 @@ def get_rid_instance_to_append():
 			print('Instancia confirmada...')
 			print('')
 			return rid_instance_to_append
+
+def get_answers_role_row(answers_role_sheet):
+    """Ask for the row number in answers role sheet"""
+    while True:
+        answers_row_index = input('Ingresar número de fila correspondiente a la evaluación: ')
+        try:
+            print('Se van a copiar las respuestas para: \'' + answers_role_sheet.sheet1.cell('C' + answers_row_index).value + '\'')
+            print('Es correcto? Presione \'s/n\'.')
+            if readchar.readchar() == 's':
+                print('Leyendo respuestas...')
+                print('')
+                return answers_row_index
+        except:
+            print('El valor ingresado \'' + answers_row_index + '\' no es válido. Revisar y volver a intentar.')
+            print('')

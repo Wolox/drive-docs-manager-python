@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-google_credentials = 0
+pygsheets_credentials = 0
+pydrive_credentials = 0
 
 # Mode for running script for ever evaluation after the first one.
 NEXT_EVALUATION = "NEXT_EVALUATION"
@@ -31,6 +32,15 @@ TEMPLATE_TALENT_FILE_KEY = '1D04Q-IQ67F1wTAgk3oEr1Q902DJd4ulv666mBlcar6c'
 # For file named: 'Rol Laboral - Evaluaciones de Desempeño (Respuestas)'
 ANSWERS_ROLE_FILE_KEY = '1felT_0RAVlG4FWFTbCkx3XMJjVSTd5sXqOLVYMzcRSo'
 
+# Types of files i can create in Drive
+FOLDER_BOOLEAN = "create#folder"
+FOLDER_TYPE = "carpeta"
+SHEET_TYPE = "sheet"
+FOLDER_MIMETYPE = "application/vnd.google-apps.folder"
+AUTO_EVALUATION_NAME = "autoevaluación"
+MANAGER_EVALUATION_NAME = "evaluación"
+EXCHANGE_EVALUATION_NAME = "intercambio"
+
 OPERATION_CREATE_SHEET = "OPERATION_CREATE_SHEET"
 OPERATION_COPY_TABS = "OPERATION_COPY_TABS"
 OPERATION_BUILD_EVALUATION_FORM = "OPERATION_BUILD_EVALUATION_FORM"
@@ -52,6 +62,53 @@ operations_by_mode_dictionary = {
     OPERATION_HIDE_TALENTS: 			[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
     OPERATION_COPY_ANSWERS: 			[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
     OPERATION_COPY_FEEDBACK:			[NEXT_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION, UPDATE_FEEDBACK]
+}
+
+# This is a matching between an action in google and a 2-tuple with:
+# (Where I want to create the file, Where is the parent where I want to create the file)
+file_actions = {
+    NEXT_EVALUATION: {
+        'create': False,
+        'search': {
+            'key': PERFORMANCE_REPORT_FOLDER_KEY
+        }
+    },
+    AUTO_EVALUATION: {
+        'create': {
+            'key': AUTO_EVALUATION_FOLDER_KEY,
+            'parent_key': PERFORMANCE_STUDY_FOLDER_KEY
+        },
+        'search': False
+    },
+    MANAGER_EVALUATION: {
+        'create': {
+            'key': MANAGER_EVALUATION_FOLDER_KEY,
+            'parent_key': PERFORMANCE_STUDY_FOLDER_KEY
+        },
+        'search': False
+    },
+    EXCHANGE_EVALUATION: {
+        'create': {
+            'key': EXCHANGE_EVALUATION_FOLDER_KEY,
+            'parent_key': PERFORMANCE_STUDY_FOLDER_KEY
+        },
+        'search': False
+    },
+    FIRST_EVALUATION: {
+        'create': {
+            'key': False,
+            'parent_key': PERFORMANCE_REPORT_FOLDER_KEY
+        },
+        'search': False
+    },
+    RID_EVALUATION: {
+        'create': {
+            'key': RID_EVALUATION_FOLDER_KEY,
+            'parent_key': PERFORMANCE_STUDY_FOLDER_KEY
+        },
+        'search': False
+    }
+    
 }
 
 folders_dictionary = {
@@ -86,6 +143,7 @@ folders_dictionary = {
         'parent_path': PERFORMANCE_STUDY_FOLDER_KEY
     }
 }
+
 # Structs declarations
 
 # This is a matching between a talent and a 4-tuple with:

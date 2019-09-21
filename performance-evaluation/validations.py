@@ -1,5 +1,12 @@
 import readchar
 
+def check_input(input):
+    print('\nElegiste: ' + input + '.\nEs correcto? Presione \'s/n\'.')
+    if readchar.readchar() == 's':
+        return True
+    else:
+        return False
+
 def is_valid_date_to_append(date_to_append):
 	if not len(date_to_append) == 4:
 		return False

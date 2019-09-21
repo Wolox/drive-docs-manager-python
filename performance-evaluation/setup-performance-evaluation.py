@@ -1,27 +1,21 @@
 # -*- coding: utf-8 -*-
-from constants import RID_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, \
-	EXCHANGE_EVALUATION, FIRST_EVALUATION, TEMPLATE_AUXILIAR_FILE_KEY, \
-	TEMPLATE_TALENT_FILE_KEY, OPERATION_COPY_TABS, OPERATION_BUILD_EVALUATION_FORM, \
-	OPERATION_HIDE_TALENTS, OPERATION_COPY_ANSWERS, OPERATION_COPY_FEEDBACK, \
-	OPERATION_CREATE_SHEET, operations_by_mode_dictionary, folders_dictionary
+from constants import *
 
-from google_sheets import set_google_credentials, create_sheet, get_sheet_by_key, \
-	get_feedback_sheet, get_answers_role_sheet, get_answers_role_row
-
-from google_drive import get_key_by_path
+from google_operations import google_authentication, create_file, open_file, \
+	get_feedback_sheet, find_key, find_and_open_file
 
 from operations import copy_tabs, build_evaluation_form, hide_unused_talents, \
 	copy_answers_role, copy_feedback, check_specific_talents
 
-from inputs import get_date_to_append, get_mode, get_title, get_rid_instance_to_append
+from inputs import get_date_to_append, get_mode, get_title, get_rid_instance_to_append, get_answers_role_row
 
 from validations import copy_should_be_omitted
 
 from utils import wait_for_quota_renewal, on_finish
 
-set_google_credentials()
-template_auxiliar_sheet = get_sheet_by_key(TEMPLATE_AUXILIAR_FILE_KEY)
-template_talent_sheet = get_sheet_by_key(TEMPLATE_TALENT_FILE_KEY)
+google_authentication()
+template_auxiliar_sheet = open_file(TEMPLATE_AUXILIAR_FILE_KEY)
+template_talent_sheet = open_file(TEMPLATE_TALENT_FILE_KEY)
 date_to_append = get_date_to_append()
 mode = get_mode()
 
@@ -36,19 +30,25 @@ mode_hide_talents = mode in operations_by_mode_dictionary[OPERATION_HIDE_TALENTS
 mode_copy_answers = mode in operations_by_mode_dictionary[OPERATION_COPY_ANSWERS]
 
 if mode_build_evaluation_form or mode_hide_talents or mode_copy_answers:
-	answers_role_sheet = get_answers_role_sheet()
+	answers_role_sheet = open_file(ANSWERS_ROLE_FILE_KEY)
 	answers_role_row = get_answers_role_row(answers_role_sheet)
 
-if not folders_dictionary[mode]['need_child_key']:
-	if not folders_dictionary[mode]['parent_key']:
-		key = get_key_by_path(folders_dictionary[mode]['parent_path'])
+if file_actions[mode]['create']:
+    # El modo me dice que tengo que crear un file
+	if file_actions[mode]['create']['key']:
+		key = file_actions[mode]['create']['key']
 	else:
-		key = folders_dictionary[mode]['parent_key']
-	destiny_sheet = create_sheet(title, key)
+		input('Al hacer click en Enter, te listará las carpetas de desempeño para que selecciones:')
+		key = find_key(file_actions[mode]['create']['parent_key'], True)
+		if key == FOLDER_BOOLEAN:
+			folder_title = get_title()
+			key = create_file(FOLDER_TYPE, folder_title, file_actions[mode]['create']['parent_key'])
+	destiny_sheet = create_file(SHEET_TYPE, title, key)
 else:
-	parent_key = get_key_by_path(folders_dictionary[mode]['parent_path'])
-	key = get_key_by_path(parent_key)
-	destiny_sheet = get_sheet_by_key(key)
+	input('Al hacer click en Enter, te listará las carpetas de desempeño para que selecciones. Luego, debes seleccionar el archivo del informe:')
+	parent_key = find_key(file_actions[mode]['search']['key'], False)
+	key = find_key(parent_key, False)
+	destiny_sheet = open_file(key)
 
 rid_instance_to_append = get_rid_instance_to_append() if mode == RID_EVALUATION else None
 
@@ -59,17 +59,9 @@ if mode in operations_by_mode_dictionary[OPERATION_COPY_TABS]:
 			wait_for_quota_renewal()
 
 if mode in operations_by_mode_dictionary[OPERATION_BUILD_EVALUATION_FORM]:
-	auto_evaluation_sheet = None
-	manager_evaluation_sheet = None
-	exchange_evaluation_sheet = None
-	if mode == EXCHANGE_EVALUATION:
-		auto_evaluation_key = get_key_by_path(folders_dictionary[AUTO_EVALUATION]['parent_key'])
-		auto_evaluation_sheet = get_sheet_by_key(auto_evaluation_key)
-		manager_evaluation_key = get_key_by_path(folders_dictionary[MANAGER_EVALUATION]['parent_key'])
-		manager_evaluation_sheet = get_sheet_by_key(manager_evaluation_key)
-	if mode == FIRST_EVALUATION:
-		exchange_evaluation_key = get_key_by_path(folders_dictionary[EXCHANGE_EVALUATION]['parent_key'])
-		exchange_evaluation_sheet = get_sheet_by_key(exchange_evaluation_key)
+	auto_evaluation_sheet = find_and_open_file(AUTO_EVALUATION_FOLDER_KEY, AUTO_EVALUATION_NAME) if mode == EXCHANGE_EVALUATION else None
+	manager_evaluation_sheet = find_and_open_file(MANAGER_EVALUATION_FOLDER_KEY, MANAGER_EVALUATION_NAME) if mode == EXCHANGE_EVALUATION else None
+	exchange_evaluation_sheet = find_and_open_file(EXCHANGE_EVALUATION_FOLDER_KEY, EXCHANGE_EVALUATION_NAME) if mode == FIRST_EVALUATION else None
 	build_evaluation_form(destiny_sheet, date_to_append, mode, auto_evaluation_sheet, manager_evaluation_sheet, exchange_evaluation_sheet, answers_role_sheet, answers_role_row)
 	wait_for_quota_renewal()
 
