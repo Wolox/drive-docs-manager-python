@@ -24,21 +24,6 @@ def get_answers_role_row(answers_role_sheet):
 			print('El valor ingresado \'' + answers_row_index + '\' no es válido. Revisar y volver a intentar.')
 			print('')
 
-# Ask for RID instance to append
-def get_rid_instance_to_append():
-	while True:
-		rid_instance_to_append = input('Ingresar instancia de RID. Ejemplo: \'1\': ')
-		if not rid_instance_to_append.isnumeric() or int(rid_instance_to_append) < 1 or int(rid_instance_to_append) > 9:
-			print('El valor ingresado \'' + rid_instance_to_append + '\' no es válido. Revisar y volver a intentar.')
-			continue
-
-		print('Instancia ingresada: \'' + rid_instance_to_append + '\'')
-		print('Es correcto? Presione \'s/n\'.')
-		if readchar.readchar() == 's':
-			print('Instancia confirmada...')
-			print('')
-			return rid_instance_to_append
-
 # Ask for date to append as evaluation instance
 def get_date_to_append():
 	while True:
@@ -104,7 +89,7 @@ def get_mode():
 		print(mode_exchange_evaluation)
 		print(mode_first_evaluation)
 
-		input_mode_number = input('Ingresar opción \'1-7\': ')
+		input_mode_number = input('Ingresar opción \'1-5\': ')
 		mode = None
 		mode = NEXT_EVALUATION if input_mode_number == '1' else mode
 		mode = AUTO_EVALUATION if input_mode_number == '2' else mode
