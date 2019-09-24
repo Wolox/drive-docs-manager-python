@@ -331,10 +331,10 @@ def _hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, work
 	# Cell from answers document with the selected talents. Info is separated by comma
 	answers_cell = answers_role_sheet.sheet1.cell(answers_role_column + answers_role_row).value.lower()
 
-	# Hide worksheet if there are no talents chosen from it
-	worksheet_destiny.hidden = not bool(answers_cell)
+	# Delete worksheet if there are no talents chosen from it
+	destiny_sheet.del_worksheet(worksheet_destiny) if not bool(answers_cell) else None
 	print('Comenzando a mostrar talentos para tab: ' + worksheet_destiny.title)
-	print('(visible)' if bool(answers_cell) else '(oculto)')
+	print('(visible)' if bool(answers_cell) else '(eliminada)')
 
 	# If no talents were chosen, the row in brief may have to be hidden if no talent was ever evaluated
 	if mode in template_auxiliar_dictionary['Desempeño'] and not bool(answers_cell):
