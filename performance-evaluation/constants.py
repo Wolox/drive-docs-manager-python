@@ -17,10 +17,10 @@ FIRST_EVALUATION = "FIRST_EVALUATION"
 # Mode for updating feedback for a given evaluation.
 UPDATE_FEEDBACK = "UPDATE_FEEDBACK"
 
-# Path to credentials file from Pygsheets. Read documentation https://pygsheets.readthedocs.io/en/latest/authorizing.html to create new credentials
+# Path to credentials file from Pygsheets.
 GSHEETS_FILE_NAME = 'client_secret.json'
 
-# Path to credentials file from PyDrive. Read documentation https://pythonhosted.org/PyDrive/quickstart.html to create new credentials
+# Path to credentials file from PyDrive.
 GDRIVE_FILE_NAME = 'credentials.json'
 
 # For file named: 'Template - Evaluación Auxiliares'
