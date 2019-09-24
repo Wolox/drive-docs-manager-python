@@ -16,8 +16,8 @@ from utils import wait_for_quota_renewal, on_finish
 google_authentication()
 template_auxiliar_sheet = open_file(TEMPLATE_AUXILIAR_FILE_KEY)
 template_talent_sheet = open_file(TEMPLATE_TALENT_FILE_KEY)
-date_to_append = get_date_to_append()
 mode = get_mode()
+date_to_append = get_date_to_append()
 
 if mode in operations_by_mode_dictionary[OPERATION_CREATE_SHEET]:
 	title = get_title()
