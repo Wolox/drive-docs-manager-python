@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 # Mode for running script for ever evaluation after the first one.
 NEXT_EVALUATION = "NEXT_EVALUATION"
-# Mode for creating a RID evaluation.
-RID_EVALUATION = "RID_EVALUATION"
 # Mode for creating the auto evaluation form.
 AUTO_EVALUATION = "AUTO_EVALUATION"
 # Mode for creating the manager evaluation form.
@@ -11,8 +9,6 @@ MANAGER_EVALUATION = "MANAGER_EVALUATION"
 EXCHANGE_EVALUATION = "EXCHANGE_EVALUATION"
 # Mode for creating the first evaluation form after filling the agreement form.
 FIRST_EVALUATION = "FIRST_EVALUATION"
-# Mode for updating feedback for a given evaluation.
-UPDATE_FEEDBACK = "UPDATE_FEEDBACK"
 
 # Path to credentials file from Pygsheets. Read documentation https://pygsheets.readthedocs.io/en/latest/authorizing.html to create new credentials
 GSHEETS_FILE_NAME = 'client_secret.json'
@@ -43,11 +39,11 @@ PERFORMANCE_STUDY_FOLDER_KEY = "1wGrZ9n-il5YnaS6Z_ihapCg1z81ad5Bn"
 PERFORMANCE_REPORT_FOLDER_KEY = "0B-gOApkHyMPvelYzM3VGV2ZlYVk"
 
 operations_by_mode_dictionary = {
-    OPERATION_COPY_TABS: 				[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION, RID_EVALUATION],
+    OPERATION_COPY_TABS: 				[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
     OPERATION_BUILD_EVALUATION_FORM:	[EXCHANGE_EVALUATION, FIRST_EVALUATION],
     OPERATION_HIDE_TALENTS: 			[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
     OPERATION_COPY_ANSWERS: 			[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
-    OPERATION_COPY_FEEDBACK:			[NEXT_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION, UPDATE_FEEDBACK]
+    OPERATION_COPY_FEEDBACK:			[NEXT_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION]
 }
 
 folders_dictionary = {
@@ -75,11 +71,6 @@ folders_dictionary = {
         'need_child_key': False,
         'parent_key': False,
         'parent_path': PERFORMANCE_REPORT_FOLDER_KEY
-    },
-    RID_EVALUATION: {
-        'need_child_key': False,
-        'parent_key': RID_EVALUATION_FOLDER_KEY,
-        'parent_path': PERFORMANCE_STUDY_FOLDER_KEY
     }
 }
 # Structs declarations
@@ -112,6 +103,5 @@ template_auxiliar_dictionary = {
     'Desempeño': 					[NEXT_EVALUATION, FIRST_EVALUATION],
     'Desempeño Intercambio':		[EXCHANGE_EVALUATION],
     'Objetivos y Capacitaciones': 	[NEXT_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
-    'Síntesis RID': 				[RID_EVALUATION],
-    'Referencias': 					[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION, RID_EVALUATION],
+    'Referencias': 					[NEXT_EVALUATION, AUTO_EVALUATION, MANAGER_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION],
 }

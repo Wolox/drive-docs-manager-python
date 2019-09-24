@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 import pygsheets
-from constants import NEXT_EVALUATION, RID_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION, \
+from constants import NEXT_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION, \
     template_talents_dictionary, operations_by_mode_dictionary, template_auxiliar_dictionary
 
 # Copy tabs from templates to destiny_sheet
-def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, date_to_append, rid_instance_to_append, mode):
+def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, date_to_append, mode):
 	destiny_worksheets = destiny_sheet.worksheets()
 	template_auxiliar_worksheets = template_auxiliar_sheet.worksheets()
 	template_talent_worksheets = template_talent_sheet.worksheets()
@@ -22,9 +22,6 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 		start_index = next(index for index, each in enumerate(destiny_worksheets) if not 'RID' in each.title and 'Referencias matriz' in each.title)
 		end_index = next(index for index, each in enumerate(destiny_worksheets) if not 'RID' in each.title and 'Referencias' in each.title and not 'Referencias matriz' in each.title) + 1
 		destiny_last_evaluation_worksheets = destiny_worksheets[start_index:end_index]
-	if mode == RID_EVALUATION and len(destiny_worksheets) > 1:
-		end_index = next(index for index, each in enumerate(destiny_worksheets) if each.index > 0 and 'Referencias' in each.title and not 'Referencias matriz' in each.title) + 1
-		destiny_last_evaluation_worksheets = destiny_worksheets[0:end_index]
 
 	# Iterate over template talent worksheets copying each talent tab. In case the same tab already exists in destiny worksheet, then use it
 	for i, worksheet in enumerate(template_talent_worksheets):
@@ -73,8 +70,7 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 		else:
 			clean_title = worksheet.title
 
-		title = clean_title if not mode == RID_EVALUATION else clean_title + ' ' + 'RID' + ' ' + rid_instance_to_append
-		title = title + ' ' + date_to_append
+		title = clean_title + ' ' + date_to_append
 		print('Copiando tab (' + str(i) + '): ' + title + ' -- desde: ' + worksheet.title)
 		new_worksheet = destiny_sheet.add_worksheet(title, src_worksheet=worksheet)
 		new_worksheet.index = i
@@ -92,8 +88,7 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 
 	# Removing unused cols for every talent worksheet in case the worksheet was copied from template
 	for key, value in template_talents_dictionary.items():
-		worksheet_title = key if not mode == RID_EVALUATION else key + ' ' + 'RID' + ' ' + rid_instance_to_append
-		worksheet_title = worksheet_title + ' ' + date_to_append
+		worksheet_title = key + ' ' + date_to_append
 		worksheet = destiny_sheet.worksheet_by_title(worksheet_title)
 		if worksheet.cols == 19:
 			column_to_remove_start_index = 16 if mode == EXCHANGE_EVALUATION else 7
@@ -140,8 +135,7 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 
 	# Update talent cells 'Desarrollo' since it may have changes
 	# Current one may be RID or not. Previous one has to be last evaluation but not RID
-	current_development_worksheet_title = 'Desarrollo' if not mode == RID_EVALUATION else 'Desarrollo' + ' ' + 'RID' + ' ' + rid_instance_to_append
-	current_development_worksheet_title = current_development_worksheet_title + ' ' + date_to_append
+	current_development_worksheet_title = 'Desarrollo ' + date_to_append
 	current_development_worksheet = destiny_sheet.worksheet_by_title(current_development_worksheet_title)
 	previous_development_worksheet = list(filter(lambda each: each.title.startswith('Desarrollo') and not 'RID' in each.title and each.index > current_development_worksheet.index, destiny_sheet.worksheets()))
 	previous_development_worksheet = previous_development_worksheet[0] if previous_development_worksheet else None
@@ -149,8 +143,7 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 
 	# Update talent cells 'Scrum Masters' since it may have changes
 	# Current one may be RID or not. Previous one has to be last evaluation but not RID
-	current_scrum_masters_worksheet_title = 'Scrum Masters' if not mode == RID_EVALUATION else 'Scrum Masters' + ' ' + 'RID' + ' ' + rid_instance_to_append
-	current_scrum_masters_worksheet_title = current_scrum_masters_worksheet_title + ' ' + date_to_append
+	current_scrum_masters_worksheet_title = 'Scrum Masters ' + date_to_append
 	current_scrum_masters_worksheet = destiny_sheet.worksheet_by_title(current_scrum_masters_worksheet_title)
 	previous_scrum_masters_worksheet = list(filter(lambda each: each.title.startswith('Scrum Masters') and not 'RID' in each.title and each.index > current_scrum_masters_worksheet.index, destiny_sheet.worksheets()))
 	previous_scrum_masters_worksheet = previous_scrum_masters_worksheet[0] if previous_scrum_masters_worksheet else None

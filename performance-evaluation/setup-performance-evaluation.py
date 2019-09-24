@@ -96,8 +96,6 @@ def get_mode():
 	mode_manager_evaluation = '3- Preparar formulario de evaluación para evaluador'
 	mode_exchange_evaluation = '4- Preparar formulario de evaluación para intercambio'
 	mode_first_evaluation = '5- Preparar informe de desempeño individual por primera vez'
-	mode_rid_evaluation = '6- Preparar informe de RID'
-	mode_update_feedback = '7- Actualizar feedback de una evaluación existente'
 	while True:
 		print('Ingresar modalidad de ejecución:')
 		print(mode_next_evaluation)
@@ -105,8 +103,6 @@ def get_mode():
 		print(mode_manager_evaluation)
 		print(mode_exchange_evaluation)
 		print(mode_first_evaluation)
-		print(mode_rid_evaluation)
-		print(mode_update_feedback)
 
 		input_mode_number = input('Ingresar opción \'1-7\': ')
 		mode = None
@@ -115,8 +111,6 @@ def get_mode():
 		mode = MANAGER_EVALUATION if input_mode_number == '3' else mode
 		mode = EXCHANGE_EVALUATION if input_mode_number == '4' else mode
 		mode = FIRST_EVALUATION if input_mode_number == '5' else mode
-		mode = RID_EVALUATION if input_mode_number == '6' else mode
-		mode = UPDATE_FEEDBACK if input_mode_number == '7' else mode
 
 		if mode is None:
 			print('El valor ingresado \'' + input_mode_number + '\' no es válido. Revisar y volver a intentar.')
@@ -129,8 +123,6 @@ def get_mode():
 		input_mode = mode_manager_evaluation if mode == MANAGER_EVALUATION else input_mode
 		input_mode = mode_exchange_evaluation if mode == EXCHANGE_EVALUATION else input_mode
 		input_mode = mode_first_evaluation if mode == FIRST_EVALUATION else input_mode
-		input_mode = mode_rid_evaluation if mode == RID_EVALUATION else input_mode
-		input_mode = mode_update_feedback if mode == UPDATE_FEEDBACK else input_mode
 
 		print('Modalidad ingresada: \'' + input_mode[3:] + '\'')
 		print('Es correcto? Presione \'s/n\'.')
@@ -231,8 +223,6 @@ else:
 	key = get_key_by_path(parent_key)
 	destiny_sheet = get_destiny_sheet(google_credentials, key)
 
-rid_instance_to_append = get_rid_instance_to_append() if mode == RID_EVALUATION else None
-
 if mode in operations_by_mode_dictionary[OPERATION_BUILD_EVALUATION_FORM]:
 	auto_evaluation_sheet = get_auto_evaluation_sheet(google_credentials) if mode == EXCHANGE_EVALUATION else None
 	manager_evaluation_sheet = get_manager_evaluation_sheet(google_credentials) if mode == EXCHANGE_EVALUATION else None
@@ -242,9 +232,8 @@ if mode in operations_by_mode_dictionary[OPERATION_BUILD_EVALUATION_FORM]:
 
 if mode in operations_by_mode_dictionary[OPERATION_COPY_TABS]:
 	if not copy_should_be_omitted(destiny_sheet, date_to_append):
-		copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, date_to_append, rid_instance_to_append, mode)
-		if not mode == RID_EVALUATION:
-			wait_for_quota_renewal()
+		copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, date_to_append, mode)
+		wait_for_quota_renewal()
 
 if mode in operations_by_mode_dictionary[OPERATION_HIDE_TALENTS]:
 	hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode)
@@ -256,6 +245,6 @@ if mode in operations_by_mode_dictionary[OPERATION_COPY_FEEDBACK]:
 	feedback_sheet = get_feedback_sheet(google_credentials)
 	copy_feedback(destiny_sheet, feedback_sheet, date_to_append)
 
-check_specific_talents(destiny_sheet, answers_role_sheet, answers_role_row, mode) if mode != RID_EVALUATION else None
+check_specific_talents(destiny_sheet, answers_role_sheet, answers_role_row, mode)
 
 on_finish()
