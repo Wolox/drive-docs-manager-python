@@ -3,8 +3,8 @@ import pygsheets
 from constants import NEXT_EVALUATION, RID_EVALUATION, EXCHANGE_EVALUATION, FIRST_EVALUATION, \
     template_talents_dictionary, operations_by_mode_dictionary, template_auxiliar_dictionary
 
-# Copy tabs from templates to destiny_sheet
 def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, date_to_append, rid_instance_to_append, mode):
+	"""Copy tabs from templates to destiny_sheet"""
 	destiny_worksheets = destiny_sheet.worksheets()
 	template_auxiliar_worksheets = template_auxiliar_sheet.worksheets()
 	template_talent_worksheets = template_talent_sheet.worksheets()
@@ -156,7 +156,8 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 	previous_scrum_masters_worksheet = previous_scrum_masters_worksheet[0] if previous_scrum_masters_worksheet else None
 	copy_talents_for_scrum_masters(current_scrum_masters_worksheet, previous_scrum_masters_worksheet)
 
-def build_evaluation_form(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, exchange_evaluation_sheet, answers_role_sheet, answers_role_row, date_to_append, mode):
+def build_evaluation_form(destiny_sheet, date_to_append, mode, auto_evaluation_sheet, manager_evaluation_sheet, exchange_evaluation_sheet, answers_role_sheet, answers_role_row):
+	"""this function call _build_evaluation_form_in_single_worksheet"""
 	print('Copiando talentos seleccionados...')
 	print('')
 
@@ -166,8 +167,8 @@ def build_evaluation_form(destiny_sheet, auto_evaluation_sheet, manager_evaluati
 	print('Copia de talentos finalizada!')
 	print('')
 
-# Hide talents in destiny_sheet by reading the chosen ones from answers_role_sheet in answers_role_row
 def hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode):
+	"""Hide talents in destiny_sheet by reading the chosen ones from answers_role_sheet in answers_role_row"""
 	print('Ocultando talentos no seleccionados...')
 	print('')
 
@@ -177,8 +178,8 @@ def hide_unused_talents(destiny_sheet, answers_role_sheet, answers_role_row, dat
 	print('Ocultamiento de talentos finalizado!')
 	print('')
 
-# Copy answers to destiny_sheet by reading them from answers_role_sheet in answers_role_row
 def copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode):
+	"""Copy answers to destiny_sheet by reading them from answers_role_sheet in answers_role_row"""
 	# If this tab is not used for this mode, then answers must not be copied
 	if mode not in template_auxiliar_dictionary['Satisfacción Laboral']:
 		print('Omitiendo copia de respuestas del formulario de rol laboral')
@@ -219,6 +220,7 @@ def copy_answers_role(destiny_sheet, answers_role_sheet, answers_role_row, date_
 	print('')
 
 def copy_feedback(destiny_sheet, feedback_sheet, date_to_append):
+	"""Copy the feedback to the evaluation form"""
 	print('Copiando feedback...')
 	print('')
 
@@ -257,6 +259,7 @@ def copy_feedback(destiny_sheet, feedback_sheet, date_to_append):
 	print('')
 
 def copy_talents_for_development(current_worksheet, previous_worksheet):
+	"""specific copy for Development talents"""
 	print('Actualizando tab: ' + current_worksheet.title)
 
 	# If previous_worksheet is None, then this talent is evaluated by first time, so nowhere to copy from
@@ -292,6 +295,7 @@ def copy_talents_for_development(current_worksheet, previous_worksheet):
 	print('')
 
 def copy_talents_for_scrum_masters(current_worksheet, previous_worksheet):
+	"""specific copy for SM talents"""
 	print('Actualizando tab: ' + current_worksheet.title)
 
 	# If previous_worksheet is None, then this talent is evaluated by first time, so nowhere to copy from
@@ -325,6 +329,7 @@ def copy_talents_for_scrum_masters(current_worksheet, previous_worksheet):
 	print('')
 
 def _hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, worksheet_identifier, answers_role_sheet, answers_role_row, answers_role_column, date_to_append, title_row_in_brief, talents_amount, mode):
+	"""Hide unused talents"""
 	# Get worksheet destiny based on worksheet_name and date_to_append
 	worksheet_destiny = destiny_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append)
 
@@ -375,7 +380,7 @@ def _hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, work
 		should_show_by_exception_2 = worksheet_identifier == 'Dis' and title.lower() == 'comunicacion eficaz (diseño)' and 'comunicación eficaz' in answers_cell
 		should_show_by_exception_3 = worksheet_identifier == 'Dis' and title.lower() == 'resolución de problemas' and 'resolución de probelmas' in answers_cell
 		should_show_by_exception_4 = worksheet_identifier == 'SM' and title.lower() == 'colaboración / facilitador' and 'colaboración y facilitador' in answers_cell
-		should_show_by_exception_5 = worksheet_identifier == 'SM' and title.lower() == 'iniciativa / autonomía' and 'iniciativa y autonomía' in answers_cell
+		# should_show_by_exception_5 = worksheet_identifier == 'SM' and title.lower() == 'iniciativa / autonomía' and 'iniciativa y autonomía' in answers_cell
 		if should_show_by_match or should_show_by_exception_1 or should_show_by_exception_2 or should_show_by_exception_3 or should_show_by_exception_4:
 			show_from = list(filter(lambda each: each.value.startswith(worksheet_identifier + str(i + 1)), cells_with_titles))[0].row - 1
 			show_to = worksheet_destiny.rows if i + 1 == len(worksheet_talents) else list(filter(lambda each: each.value.startswith(worksheet_identifier + str(i + 2)), cells_with_titles))[0].row - 1
@@ -384,13 +389,12 @@ def _hide_unused_talents_in_single_worksheet(destiny_sheet, worksheet_name, work
 
 	print('')
 
-# Copies evaluated talents from a sheet to destiny.
-# In case mode is EXCHANGE_EVALUATION it uses auto_evaluation_sheet and manager_evaluation_sheet.
-# In case mode is FIRST_EVALUATION it uses exchange_evaluation_sheet.
 def _build_evaluation_form_in_single_worksheet(destiny_sheet, auto_evaluation_sheet, manager_evaluation_sheet, exchange_evaluation_sheet, worksheet_name, worksheet_identifier, answers_role_sheet, answers_role_row, answers_role_column, date_to_append, talents_amount, mode):
+	"""Copies evaluated talents from a sheet to destiny."""
+	# In case mode is EXCHANGE_EVALUATION it uses auto_evaluation_sheet and manager_evaluation_sheet.
+	# In case mode is FIRST_EVALUATION it uses exchange_evaluation_sheet.
 	# Get worksheet destiny based on worksheet_name and date_to_append
 	worksheet_destiny = destiny_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append)
-
 	# Get auto evaluation worksheet based on worksheet_name and date_to_append
 	try:
 		auto_evaluation_worksheet = auto_evaluation_sheet.worksheet_by_title(worksheet_name + ' ' + date_to_append) if mode == EXCHANGE_EVALUATION else None
@@ -437,7 +441,7 @@ def _build_evaluation_form_in_single_worksheet(destiny_sheet, auto_evaluation_sh
 		should_copy_by_exception_2 = worksheet_identifier == 'Dis' and title.lower() == 'comunicacion eficaz (diseño)' and 'comunicación eficaz' in answers_cell
 		should_copy_by_exception_3 = worksheet_identifier == 'Dis' and title.lower() == 'resolución de problemas' and 'resolución de probelmas' in answers_cell
 		should_copy_by_exception_4 = worksheet_identifier == 'SM' and title.lower() == 'colaboración / facilitador' and 'colaboración y facilitador' in answers_cell
-		should_copy_by_exception_5 = worksheet_identifier == 'SM' and title.lower() == 'iniciativa / autonomía' and 'iniciativa y autonomía' in answers_cell
+		# should_copy_by_exception_5 = worksheet_identifier == 'SM' and title.lower() == 'iniciativa / autonomía' and 'iniciativa y autonomía' in answers_cell
 		if should_copy_by_match or should_copy_by_exception_1 or should_copy_by_exception_2 or should_copy_by_exception_3 or should_copy_by_exception_4:
 			copy_from = list(filter(lambda each: each.value.startswith(worksheet_identifier + str(i + 1)), cells_with_titles))[0].row + 3
 			copy_to = worksheet_destiny.rows if i + 1 == len(worksheet_talents) else list(filter(lambda each: each.value.startswith(worksheet_identifier + str(i + 2)), cells_with_titles))[0].row - 3
@@ -465,3 +469,42 @@ def _build_evaluation_form_in_single_worksheet(destiny_sheet, auto_evaluation_sh
 			print('Copiando talento: ' + title)
 
 	print('')
+
+def check_specific_talents(destiny_sheet, answers_role_sheet, answers_role_row, date_to_append, mode):
+	"""check certain talents"""
+	# Update checks in 'Desempeño' tab in order to read the proper specific talent.
+	# No need to check for RID since this tab is not present in this mode.
+	performance_tabs_to_update = ['Desempeño Evaluadores', 'Desempeño', 'Desempeño Intercambio']
+
+	for each in performance_tabs_to_update:
+		if mode in template_auxiliar_dictionary[each]:
+			instance_worksheet = destiny_sheet.worksheet_by_title(each + ' ' + date_to_append)
+
+			# Update cell 'Impacto' check, in order to set it to TRUE in case last evaluation uses it.
+			leaders_worksheet = destiny_sheet.worksheet_by_title('Líderes' + ' ' + date_to_append)
+			impact_cell_has_value = bool(leaders_worksheet.cell('G55').value.strip())
+			print('Actualizando check de Impacto en tab: ' + instance_worksheet.title)
+			instance_worksheet.update_value('J27', 'TRUE' if impact_cell_has_value else 'FALSE')
+			print('Actualizada check de Impacto en tab: ' + instance_worksheet.title)
+			print('')
+
+			development_talents_chosen_cell = template_talents_dictionary['Desarrollo'][1] + answers_role_row
+			development_talents_chosen = bool(answers_role_sheet.sheet1.cell(development_talents_chosen_cell).value.strip())
+			print('Actualizando check de Desarrollo en tab: ' + instance_worksheet.title)
+			instance_worksheet.update_value('G27', 'TRUE' if development_talents_chosen else 'FALSE')
+			print('Actualizada check de Desarrollo en tab: ' + instance_worksheet.title)
+			print('')
+
+			design_talents_chosen_cell = template_talents_dictionary['Diseño'][1] + answers_role_row
+			design_talents_chosen = bool(answers_role_sheet.sheet1.cell(design_talents_chosen_cell).value.strip())
+			print('Actualizando check de Diseño en tab: ' + instance_worksheet.title)
+			instance_worksheet.update_value('H27', 'TRUE' if design_talents_chosen else 'FALSE')
+			print('Actualizada check de Diseño en tab: ' + instance_worksheet.title)
+			print('')
+
+			product_thinking_talents_chosen_cell = template_talents_dictionary['PT'][1] + answers_role_row
+			product_thinking_talents_chosen = bool(answers_role_sheet.sheet1.cell(product_thinking_talents_chosen_cell).value.strip())
+			print('Actualizando check de PT en tab: ' + instance_worksheet.title)
+			instance_worksheet.update_value('I27', 'TRUE' if product_thinking_talents_chosen else 'FALSE')
+			print('Actualizada check de PT en tab: ' + instance_worksheet.title)
+			print('')
