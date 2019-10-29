@@ -153,7 +153,7 @@ template_talents_dictionary = {
     'Administración y Finanzas': 	('AF',	'O',	56,		[2, 12, 22]),
     'Business Dev': 				('BD',	'Q',	72,		[2, 12, 22, 32, 42, 52]),
     'Calidad': 						('C',	'T',	76,		[2, 12, 22, 32, 42]),
-    'Desarrollo': 					('Dev',	'K',	32,		[2, 11, 19, 27, 35]),
+    'Desarrollo': 					('Dev',	'K',	32,		[2, 11, 19, 27, 38, 48, 57]),
     'Diseño': 						('Dis',	'R',	36,		[2, 10, 19, 28, 38]),
     'PT': 							('PT',	'S',	40,		[2, 12, 22, 31, 40]),
     'QA': 							('QA',	'V',	60,		[2, 12, 23, 31, 41]),
