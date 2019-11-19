@@ -163,7 +163,7 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 	current_design_worksheet = destiny_sheet.worksheet_by_title(current_design_worksheet_title)
 	previous_design_worksheet = list(filter(lambda each: each.title.startswith('Diseño') and not 'RID' in each.title and each.index > current_design_worksheet.index, destiny_sheet.worksheets()))
 	previous_design_worksheet = previous_design_worksheet[0] if previous_design_worksheet else None
-	copy_talents_for_scrum_masters(current_design_worksheet, previous_design_worksheet)
+	copy_talents_for_design(current_design_worksheet, previous_design_worksheet)
 
 def build_evaluation_form(destiny_sheet, date_to_append, mode, auto_evaluation_sheet, manager_evaluation_sheet, exchange_evaluation_sheet, answers_role_sheet, answers_role_row):
 	"""this function call _build_evaluation_form_in_single_worksheet"""
