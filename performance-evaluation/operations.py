@@ -277,7 +277,7 @@ def copy_talents_for_development(current_worksheet, previous_worksheet):
 		print('')
 		return
 
-	# If 'B12' contains 'Dev2', then previous_worksheet has the older format, otherwise the matching is direct
+	# If 'B19' ends with 'Testing' instead '(Deprecado)', then previous_worksheet has the older format, otherwise the matching is direct
 	need_to_adapt = previous_worksheet.cell('B19').value.endswith('Testing')
 
 	cells_if_not_need_to_adapt = {
