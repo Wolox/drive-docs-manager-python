@@ -295,7 +295,6 @@ def copy_talents_for_development(current_worksheet, previous_worksheet):
 		('G23', 'I24'): ('G23', 'I24'), # Dev3 (Deprecado)
 		('G31', 'I32'): ('G31', 'I32'), # Dev4
 		('G39', 'I39'): ('G42', 'I42'), # Dev5: Integración con clientes (front, mobile, externos
-		('G40', 'I40'): ('G52', 'I52'), # Dev6: Provisión de servidores
 	}
 	ranges_to_update = cells_if_not_need_to_adapt if not need_to_adapt else cells_if_need_to_adapt
 	for key, value in ranges_to_update.items():
