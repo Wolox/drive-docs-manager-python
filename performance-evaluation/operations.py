@@ -46,8 +46,8 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 		found_destiny_worksheet = list(filter(lambda each: each.title.startswith(clean_title_to_search), destiny_last_evaluation_worksheets))
 		worksheet_to_copy = worksheet if not found_destiny_worksheet else found_destiny_worksheet[0]
 
-		# In case 'Desarrollo' or 'Scrum Masters' is found in destiny_worksheet, it must be copied from template_worksheet since it may have updates
-		if worksheet.title.startswith('Desarrollo') or worksheet.title.startswith('Scrum Masters'):
+		# In case 'Desarrollo' or 'Scrum Masters' or 'Diseño' is found in destiny_worksheet, it must be copied from template_worksheet since it may have updates
+		if worksheet.title.startswith('Desarrollo') or worksheet.title.startswith('Scrum Masters') or worksheet.title.startswith('Diseño'):
 			worksheet_to_copy = worksheet
 
 		worksheets_to_copy.append(worksheet_to_copy)
@@ -91,7 +91,7 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 			worksheet.index = worksheet.index + len(worksheets_to_copy)
 
 	# Removing unused cols for every talent worksheet in case the worksheet was copied from template
-	for key, value in template_talents_dictionary.items():
+	for key, _ in template_talents_dictionary.items():
 		worksheet_title = key if not mode == RID_EVALUATION else key + ' ' + 'RID' + ' ' + rid_instance_to_append
 		worksheet_title = worksheet_title + ' ' + date_to_append
 		worksheet = destiny_sheet.worksheet_by_title(worksheet_title)
@@ -155,6 +155,15 @@ def copy_tabs(destiny_sheet, template_auxiliar_sheet, template_talent_sheet, dat
 	previous_scrum_masters_worksheet = list(filter(lambda each: each.title.startswith('Scrum Masters') and not 'RID' in each.title and each.index > current_scrum_masters_worksheet.index, destiny_sheet.worksheets()))
 	previous_scrum_masters_worksheet = previous_scrum_masters_worksheet[0] if previous_scrum_masters_worksheet else None
 	copy_talents_for_scrum_masters(current_scrum_masters_worksheet, previous_scrum_masters_worksheet)
+
+	# Update talent cells 'Diseño' since it may have changes
+	# Current one may be RID or not. Previous one has to be last evaluation but not RID
+	current_design_worksheet_title = 'Diseño' if not mode == RID_EVALUATION else 'Diseño' + ' ' + 'RID' + ' ' + rid_instance_to_append
+	current_design_worksheet_title = current_design_worksheet_title + ' ' + date_to_append
+	current_design_worksheet = destiny_sheet.worksheet_by_title(current_design_worksheet_title)
+	previous_design_worksheet = list(filter(lambda each: each.title.startswith('Diseño') and not 'RID' in each.title and each.index > current_design_worksheet.index, destiny_sheet.worksheets()))
+	previous_design_worksheet = previous_design_worksheet[0] if previous_design_worksheet else None
+	copy_talents_for_scrum_masters(current_design_worksheet, previous_design_worksheet)
 
 def build_evaluation_form(destiny_sheet, date_to_append, mode, auto_evaluation_sheet, manager_evaluation_sheet, exchange_evaluation_sheet, answers_role_sheet, answers_role_row):
 	"""this function call _build_evaluation_form_in_single_worksheet"""
@@ -269,22 +278,24 @@ def copy_talents_for_development(current_worksheet, previous_worksheet):
 		return
 
 	# If 'B12' contains 'Dev2', then previous_worksheet has the older format, otherwise the matching is direct
-	need_to_adapt = previous_worksheet.cell('B12').value.startswith('Dev2')
+	need_to_adapt = previous_worksheet.cell('B19').value.endswith('Testing')
 
 	cells_if_not_need_to_adapt = {
 		('G6', 'I8'): ('G6', 'I8'),		# Dev1
 		('G15', 'I16'): ('G15', 'I16'), # Dev2
-		('G23', 'I24'): ('G23', 'I24'), # Dev3
-		('G31', 'I32'): ('G31', 'I32'), # Dev4
-		('G39', 'I40'): ('G39', 'I40'), # Dev5
+		('G23', 'I24'): ('G23', 'I24'), # Dev3 (Deprecado)
+		('G31', 'I35'): ('G31', 'I35'), # Dev4 Desarrollo Front-End & Mobile
+		('G42', 'I45'): ('G42', 'I45'), # Dev5 Desarrollo Backend
+		('G52', 'I54'): ('G52', 'I54'), # Dev6 Infraestructura/Arquitectura
+		('G61', 'I63'): ('G61', 'I63'), # Dev7 Comunidad de desarrollo
 	}
 	cells_if_need_to_adapt = {
-		('G6', 'I6'): ('G6', 'I6'), 	# Dev1: 'Aprendizaje'
-		('G9', 'I9'): ('G8', 'I8'),		# Dev1: 'Calidad de código'
-		('G16', 'I17'): ('G15', 'I16'), # Dev2
-		('G24', 'I25'): ('G23', 'I24'), # Dev3
-		('G32', 'I33'): ('G31', 'I32'), # Dev4
-		('G40', 'I41'): ('G39', 'I40'), # Dev5
+		('G6', 'I8'): ('G6', 'I8'),		# Dev1
+		('G15', 'I16'): ('G15', 'I16'), # Dev2
+		('G23', 'I24'): ('G23', 'I24'), # Dev3 (Deprecado)
+		('G31', 'I32'): ('G31', 'I32'), # Dev4
+		('G39', 'I39'): ('G42', 'I42'), # Dev5: Integración con clientes (front, mobile, externos
+		('G40', 'I40'): ('G52', 'I52'), # Dev6: Provisión de servidores
 	}
 	ranges_to_update = cells_if_not_need_to_adapt if not need_to_adapt else cells_if_need_to_adapt
 	for key, value in ranges_to_update.items():
@@ -319,6 +330,47 @@ def copy_talents_for_scrum_masters(current_worksheet, previous_worksheet):
 		('G16', 'I19'): ('G15', 'I18'), # SM2
 		('G28', 'I30'): ('G25', 'I27'), # SM3
 		('G39', 'I39'): ('G28', 'I28'), # SM3: 'Acciones en relación a generación de comportamientos de participación y generación de ideas.'
+	}
+	ranges_to_update = cells_if_not_need_to_adapt if not need_to_adapt else cells_if_need_to_adapt
+	for key, value in ranges_to_update.items():
+		talents = previous_worksheet.get_values(start=key[0], end=key[1], returnas='matrix')
+		current_worksheet.update_values(crange=value[0] + ':' + value[1], values=talents)
+
+	print('Actualizada tab: ' + current_worksheet.title)
+	print('')
+
+def copy_talents_for_design(current_worksheet, previous_worksheet):
+	"""specific copy for Design talents"""
+	print('Actualizando tab: ' + current_worksheet.title)
+
+	# If previous_worksheet is None, then this talent is evaluated by first time, so nowhere to copy from
+	if not previous_worksheet:
+		print('Nada para copiar...')
+		print('')
+		return
+
+	# If row_number 48 exists and  value ends with 'Motion Design', then previous_worksheet has the older format, otherwise the matching is direct
+	all_cells = previous_worksheet.get_all_values(include_empty_rows=True, include_tailing_empty=True, returnas='cells')
+	last_row = all_cells[-1][-1]
+	if last_row.row >= 48:
+		need_to_adapt = False if previous_worksheet.cell('B48').value.endswith('Motion Design') else True
+	else:
+		need_to_adapt = True
+
+	cells_if_not_need_to_adapt = {
+		('G6', 'I7'): ('G6', 'I7'),		# Dis1
+		('G14', 'I16'): ('G14', 'I16'), # Dis2
+		('G23', 'I25'): ('G23', 'I25'), # Dis3
+		('G32', 'I35'): ('G32', 'I35'), # Dis4
+		('G42', 'I45'): ('G42', 'I45'), # Dis5
+		('G52', 'I53'): ('G52', 'I53'), # Dis6
+	}
+	cells_if_need_to_adapt = {
+		('G6', 'I7'): ('G6', 'I7'),		# Dis1
+		('G14', 'I16'): ('G14', 'I16'), # Dis2
+		('G23', 'I25'): ('G23', 'I25'), # Dis3
+		('G32', 'I35'): ('G32', 'I35'), # Dis4
+		('G42', 'I45'): ('G42', 'I45'), # Dis5
 	}
 	ranges_to_update = cells_if_not_need_to_adapt if not need_to_adapt else cells_if_need_to_adapt
 	for key, value in ranges_to_update.items():
