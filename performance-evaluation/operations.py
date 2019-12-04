@@ -294,12 +294,32 @@ def copy_talents_for_development(current_worksheet, previous_worksheet):
 		('G15', 'I16'): ('G15', 'I16'), # Dev2
 		('G23', 'I24'): ('G23', 'I24'), # Dev3 (Deprecado)
 		('G31', 'I32'): ('G31', 'I32'), # Dev4
-		('G39', 'I39'): ('G42', 'I42'), # Dev5: Integración con clientes (front, mobile, externos
+		('G39', 'I39'): ('G42', 'I42'), # Dev5 - Comportamiento A
+		('G40', 'I40'): ('G52', 'I52'), # Dev5 - Comportamiento B
 	}
+
 	ranges_to_update = cells_if_not_need_to_adapt if not need_to_adapt else cells_if_need_to_adapt
 	for key, value in ranges_to_update.items():
 		talents = previous_worksheet.get_values(start=key[0], end=key[1], returnas='matrix')
 		current_worksheet.update_values(crange=value[0] + ':' + value[1], values=talents)
+
+	if need_to_adapt:
+		talents = [['1', 'Algunas veces', 'Este puntaje existe solamente para equilibrar el puntaje de la evaluación anterior.']]
+		frequency = {
+			'algunas veces': 0,
+			'habitualmente': 0.25,
+			'en la mayoría de los casos': 0.5,
+			'casi siempre': 0.75
+		}
+		dev5_a = previous_worksheet.get_values(start='G39', end='H39', returnas='matrix')
+		dev5_b = previous_worksheet.get_values(start='G40', end='H40', returnas='matrix')
+		dev5_a_sum = float(dev5_a[0][0]) + frequency[dev5_a[0][1].lower()]
+		dev5_b_sum = float(dev5_b[0][0]) + frequency[dev5_b[0][1].lower()]
+
+		if dev5_a_sum >= dev5_b_sum:
+			current_worksheet.update_values(crange='G43:I43', values=talents)
+		else:
+			current_worksheet.update_values(crange='G53:I53', values=talents)
 
 	print('Actualizada tab: ' + current_worksheet.title)
 	print('')
